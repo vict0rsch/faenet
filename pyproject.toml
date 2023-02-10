@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "faenet"
+version = "0.1.0"
+description = ""
+authors = ["Victor Schmidt <vsch@pm.me>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+torch = "^1.12"
+mendeleev = "^0.12.1"
+torch-geometric = "^2.2.0"
+torch-sparse = "^0.6.16"
+e3nn = "^0.5.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
