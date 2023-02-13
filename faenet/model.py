@@ -2,7 +2,7 @@
 # which can also be found in ocpmodels/models/faenet.py
 """ Code of the Scalable Frame Averaging (Rotation Invariant) GNN
 """
-from typing import Optional
+from typing import Optional, Dict
 
 import torch
 from e3nn.o3 import spherical_harmonics
@@ -506,6 +506,8 @@ class FAENet(BaseModel):
         edge_embed_hidden: int = 128,
         edge_embed_type: str = "all_rij",
         energy_head: Optional[str] = None,
+        force_decoder_type: Optional[str] = "mlp",
+        force_decoder_model_config: Optional[Dict] = {"hidden_channels": 128},
         graph_norm: bool = True,
         graph_rewiring: Optional[str] = None,
         hidden_channels: int = 128,
@@ -533,6 +535,8 @@ class FAENet(BaseModel):
         self.edge_embed_hidden = edge_embed_hidden
         self.edge_embed_type = edge_embed_type
         self.energy_head = energy_head
+        self.force_decoder_type = force_decoder_type
+        self.force_decoder_model_config = force_decoder_model_config
         self.graph_norm = graph_norm
         self.graph_rewiring = graph_rewiring
         self.hidden_channels = hidden_channels
@@ -640,7 +644,8 @@ class FAENet(BaseModel):
             )
 
     def forces_forward(self, preds):
-        return self.decoder(preds["hidden_state"])
+        if self.decoder:
+            return self.decoder(preds["hidden_state"])
 
     def energy_forward(self, data):
         # Rewire the graph
