@@ -2,6 +2,8 @@
 # which can also be found in ocpmodels/models/faenet.py
 """ Code of the Scalable Frame Averaging (Rotation Invariant) GNN
 """
+from typing import Optional
+
 import torch
 from e3nn.o3 import spherical_harmonics
 from torch import nn
@@ -11,10 +13,9 @@ from torch_geometric.nn.norm import GraphNorm
 from torch_scatter import scatter
 
 from faenet.base_model import BaseModel
-
-from faenet.force_decoder import ForceDecoder
-from faenet.layers import TransfoAttConv, PositionalEncoding
 from faenet.embedding import PhysEmbedding
+from faenet.force_decoder import ForceDecoder
+from faenet.layers import PositionalEncoding, TransfoAttConv, GaussianSmearing
 from faenet.pooling import Graclus, Hierarchical_Pooling
 from faenet.utils import get_pbc_distances
 
@@ -475,7 +476,7 @@ class FAENet(BaseModel):
             (default: :obj:`32`)
         pg_hidden_channels (int): Hidden period and group embed size.
             (default: obj:`32`)
-        phys_embed (bool): Concat fixed physics-aware embeddings.
+        phys_embeds (bool): Concat fixed physics-aware embeddings.
         phys_hidden_channels (int): Hidden size of learnable phys embed.
             (default: obj:`32`)
         num_interactions (int): The number of interaction blocks.
@@ -496,79 +497,133 @@ class FAENet(BaseModel):
         complex_mp (bool); whether to add a second layer MLP at the end of each Interaction
     """
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        act: str = "swish",
+        att_heads: int = 0,
+        complex_mp: bool = False,
+        cutoff: float = 5.0,
+        edge_embed_hidden: int = 128,
+        edge_embed_type: str = "all_rij",
+        energy_head: Optional[str] = None,
+        graph_norm: bool = True,
+        graph_rewiring: Optional[str] = None,
+        hidden_channels: int = 128,
+        max_num_neighbors: int = 40,
+        mp_type: str = "updownscale_base",
+        num_filters: int = 128,
+        num_gaussians: int = 50,
+        num_interactions: int = 4,
+        pg_hidden_channels: int = 32,
+        phys_embeds: bool = True,
+        phys_hidden_channels: int = 0,
+        regress_forces: bool = False,
+        second_layer_MLP: bool = True,
+        skip_co: str = True,
+        tag_hidden_channels: int = 32,
+        use_pbc: bool = True,
+    ):
 
         super(FAENet, self).__init__()
 
-        self.cutoff = kwargs["cutoff"]
-        self.energy_head = kwargs["energy_head"]
-        self.regress_forces = kwargs["regress_forces"]
-        self.use_pbc = kwargs["use_pbc"]
-        self.max_num_neighbors = kwargs["max_num_neighbors"]
-        self.edge_embed_type = kwargs["edge_embed_type"]
-        self.skip_co = kwargs["skip_co"]
-        if kwargs["mp_type"] == "sfarinet":
-            kwargs["num_filters"] = kwargs["hidden_channels"]
+        self.act = act
+        self.att_heads = att_heads
+        self.complex_mp = complex_mp
+        self.cutoff = cutoff
+        self.edge_embed_hidden = edge_embed_hidden
+        self.edge_embed_type = edge_embed_type
+        self.energy_head = energy_head
+        self.graph_norm = graph_norm
+        self.graph_rewiring = graph_rewiring
+        self.hidden_channels = hidden_channels
+        self.max_num_neighbors = max_num_neighbors
+        self.mp_type = mp_type
+        self.num_filters = num_filters
+        self.num_gaussians = num_gaussians
+        self.num_interactions = num_interactions
+        self.pg_hidden_channels = pg_hidden_channels
+        self.phys_embeds = phys_embeds
+        self.phys_hidden_channels = phys_hidden_channels
+        self.regress_forces = regress_forces
+        self.second_layer_MLP = second_layer_MLP
+        self.skip_co = skip_co
+        self.tag_hidden_channels = tag_hidden_channels
+        self.use_pbc = use_pbc
+
+        if not isinstance(self.regress_forces, str):
+            assert self.regress_forces is False or self.regress_forces is None, (
+                "regress_forces must be a string "
+                + "('', 'direct', 'direct_with_gradient_target') or False or None"
+            )
+            self.regress_forces = ""
+
+        if self.mp_type == "sfarinet":
+            self.num_filters = self.hidden_channels
 
         self.act = (
-            getattr(nn.functional, kwargs["act"]) if kwargs["act"] != "swish" else swish
+            (getattr(nn.functional, self.act) if self.act != "swish" else swish)
+            if isinstance(self.act, str)
+            else self.act
         )
-        self.use_positional_embeds = kwargs["graph_rewiring"] in {
+        assert callable(self.act), (
+            "act must be a callable function or a string "
+            + "describing that function in torch.nn.functional"
+        )
+
+        self.use_positional_embeds = self.graph_rewiring in {
             "one-supernode-per-graph",
             "one-supernode-per-atom-type",
             "one-supernode-per-atom-type-dist",
         }
         # Gaussian Basis
-        self.distance_expansion = GaussianSmearing(
-            0.0, self.cutoff, kwargs["num_gaussians"]
-        )
+        self.distance_expansion = GaussianSmearing(0.0, self.cutoff, self.num_gaussians)
 
         # Embedding block
         self.embed_block = EmbeddingBlock(
-            kwargs["num_gaussians"],
-            kwargs["num_filters"],
-            kwargs["hidden_channels"],
-            kwargs["tag_hidden_channels"],
-            kwargs["pg_hidden_channels"],
-            kwargs["phys_hidden_channels"],
-            kwargs["phys_embeds"],
-            kwargs["graph_rewiring"],
+            self.num_gaussians,
+            self.num_filters,
+            self.hidden_channels,
+            self.tag_hidden_channels,
+            self.pg_hidden_channels,
+            self.phys_hidden_channels,
+            self.phys_embeds,
+            self.graph_rewiring,
             self.act,
-            kwargs["second_layer_MLP"],
-            kwargs["edge_embed_type"],
+            self.second_layer_MLP,
+            self.edge_embed_type,
         )
 
         # Interaction block
         self.interaction_blocks = nn.ModuleList(
             [
                 InteractionBlock(
-                    kwargs["hidden_channels"],
-                    kwargs["num_filters"],
+                    self.hidden_channels,
+                    self.num_filters,
                     self.act,
-                    kwargs["mp_type"],
-                    kwargs["complex_mp"],
-                    kwargs["att_heads"],
-                    kwargs["graph_norm"],
+                    self.mp_type,
+                    self.complex_mp,
+                    self.att_heads,
+                    self.graph_norm,
                 )
-                for _ in range(kwargs["num_interactions"])
+                for _ in range(self.num_interactions)
             ]
         )
 
         # Output block
         self.output_block = OutputBlock(
-            self.energy_head, kwargs["hidden_channels"], self.act
+            self.energy_head, self.hidden_channels, self.act
         )
 
         # Energy head
         if self.energy_head == "weighted-av-initial-embeds":
-            self.w_lin = Linear(kwargs["hidden_channels"], 1)
+            self.w_lin = Linear(self.hidden_channels, 1)
 
         # Force head
         self.decoder = (
             ForceDecoder(
-                kwargs["force_decoder_type"],
-                kwargs["hidden_channels"],
-                kwargs["force_decoder_model_config"],
+                self.force_decoder_type,
+                self.hidden_channels,
+                self.force_decoder_model_config,
                 self.act,
             )
             if "direct" in self.regress_forces
@@ -577,11 +632,11 @@ class FAENet(BaseModel):
 
         # Skip co
         if self.skip_co == "concat":
-            self.mlp_skip_co = Linear((kwargs["num_interactions"] + 1), 1)
+            self.mlp_skip_co = Linear((self.num_interactions + 1), 1)
         elif self.skip_co == "concat_atom":
             self.mlp_skip_co = Linear(
-                ((kwargs["num_interactions"] + 1) * kwargs["hidden_channels"]),
-                kwargs["hidden_channels"],
+                ((self.num_interactions + 1) * self.hidden_channels),
+                self.hidden_channels,
             )
 
     def forces_forward(self, preds):
