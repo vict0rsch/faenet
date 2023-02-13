@@ -1,14 +1,3 @@
-wandb
-data
-checkpoints
-results
-logs
-*.traj
-experimental
-*.pkl
-.ntfy.conf
-cosmosis/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
