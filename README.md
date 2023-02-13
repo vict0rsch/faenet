@@ -22,3 +22,7 @@
 * [ ] documentation
 * [ ] check att heads > 0 if "att" in mp_type -> tests & model
 * [ ] EC loss interface
+* [ ] document sample data
+* [ ] check docstrings
+* [ ] clean up faenet mp options
+* [ ] ForceDecoder takes a single model config now not a dict of configs per type
