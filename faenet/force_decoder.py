@@ -11,7 +11,7 @@ class LambdaLayer(nn.Module):
 
 
 class ForceDecoder(nn.Module):
-    def __init__(self, type, input_channels, model_configs, act):
+    def __init__(self, type, input_channels, model_config, act):
         """
         Decoder predicting a force scalar per atom
 
@@ -26,8 +26,7 @@ class ForceDecoder(nn.Module):
         super().__init__()
         self.type = type
         self.act = act
-        assert type in model_configs, f"Unknown type of force decoder: `{type}`"
-        self.model_config = model_configs[type]
+        self.model_config = model_config
         if self.type == "simple":
             self.model = nn.Sequential(
                 nn.Linear(
