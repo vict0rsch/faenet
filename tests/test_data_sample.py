@@ -1,13 +1,15 @@
 import torch
-from t_utils import ROOT
+import t_utils as tu
 import torch_geometric
-
-DATA_PATH = ROOT / "examples/data/is2re_bs8.pt"
 
 
 def test_load_data():
-    torch.load(DATA_PATH)
+    torch.load(tu.DATA_PATH)
 
 
 def test_is_batch():
-    assert isinstance(torch.load(DATA_PATH), torch_geometric.data.Batch)
+    assert isinstance(torch.load(tu.DATA_PATH), torch_geometric.data.Batch)
+
+
+def test_get_batch():
+    assert isinstance(tu.get_batch(), torch_geometric.data.Batch)
