@@ -26,3 +26,4 @@
 * [ ] check docstrings
 * [ ] clean up faenet mp options
 * [ ] ForceDecoder takes a single model config now not a dict of configs per type
+* [ ] idea: forcedecoder as nn module
