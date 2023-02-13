@@ -7,13 +7,16 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.12"
 torch = "^1.12"
-mendeleev = "^0.12.1"
+mendeleev = "^0.12"
 torch-geometric = "^2.2.0"
 torch-sparse = "^0.6.16"
 e3nn = "^0.5.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
 
 [build-system]
 requires = ["poetry-core"]
