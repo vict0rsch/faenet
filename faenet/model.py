@@ -177,7 +177,7 @@ class InteractionBlock(MessagePassing):
                 hidden_channels if "updown" not in self.mp_type else num_filters
             )
 
-        if self.mp_type == "sfarinet":
+        if self.mp_type == "simple":
             self.lin_h = nn.Linear(hidden_channels, hidden_channels)
 
         elif self.mp_type == "updownscale":
@@ -207,7 +207,7 @@ class InteractionBlock(MessagePassing):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.mp_type != "sfarinet":
+        if self.mp_type != "simple":
             nn.init.xavier_uniform_(self.lin_geom.weight)
             self.lin_geom.bias.data.fill_(0)
         if self.complex_mp:
@@ -254,7 +254,7 @@ class InteractionBlock(MessagePassing):
             h = torch.cat((h, chi), dim=1)
             h = self.lin_up(h)
 
-        elif self.mp_type in {"base", "sfarinet"}:
+        elif self.mp_type in {"base", "simple"}:
             h = self.propagate(edge_index, x=h, W=e)  # propagate
             if self.graph_norm:
                 h = self.act(self.graph_norm(h))
@@ -348,7 +348,7 @@ class FAENet(BaseModel):
         second_layer_MLP (bool): use 2-layers MLP at the end of the Embedding block.
         skip_co (str): add a skip connection between each interaction block and
             energy-head. ("add", False, "concat", "concat_atom")
-        mp_type (str, in {'base', 'updownscale_base', 'updownscale', 'updown_local_env', 'sfarinet'}}):
+        mp_type (str, in {'base', 'updownscale_base', 'updownscale', 'updown_local_env', 'simple'}}):
             specificies the MP of the interaction block.
         graph_norm (bool): whether to apply batch norm after every linear layer.
         complex_mp (bool); whether to add a second layer MLP at the end of each Interaction
@@ -410,7 +410,7 @@ class FAENet(BaseModel):
             )
             self.regress_forces = ""
 
-        if self.mp_type == "sfarinet":
+        if self.mp_type == "simple":
             self.num_filters = self.hidden_channels
 
         self.act = (

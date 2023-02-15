@@ -37,7 +37,7 @@ init_space = {
     "force_decoder_type": ["mlp", "simple", ""],
     "graph_norm": [False, True],
     "mp_type": [
-        "sfarinet",
+        "simple",
         "updownscale",
         "updownscale_base",
         "updown_local_env",
