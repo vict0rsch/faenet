@@ -5,27 +5,21 @@
 from typing import Optional, Dict
 
 import torch
-from e3nn.o3 import spherical_harmonics
 from torch import nn
 from torch.nn import Embedding, Linear
-from torch_geometric.nn import MessagePassing, TransformerConv, radius_graph
+from torch_geometric.nn import MessagePassing, radius_graph
 from torch_geometric.nn.norm import GraphNorm
 from torch_scatter import scatter
 
 from faenet.base_model import BaseModel
 from faenet.embedding import PhysEmbedding
 from faenet.force_decoder import ForceDecoder
-from faenet.layers import PositionalEncoding, TransfoAttConv, GaussianSmearing
-from faenet.pooling import Graclus, Hierarchical_Pooling
-from faenet.utils import get_pbc_distances
+from faenet.utils import get_pbc_distances, GaussianSmearing
 
 try:
     from torch_geometric.nn.acts import swish
 except ImportError:
     from torch_geometric.nn.resolver import swish
-
-NUM_CLUSTERS = 20
-NUM_POOLING_LAYERS = 1
 
 
 class EmbeddingBlock(nn.Module):
@@ -38,23 +32,15 @@ class EmbeddingBlock(nn.Module):
         pg_hidden_channels,
         phys_hidden_channels,
         phys_embeds,
-        graph_rewiring,
         act,
         second_layer_MLP,
-        edge_embed_type,
     ):
         super().__init__()
         self.act = act
         self.use_tag = tag_hidden_channels > 0
         self.use_pg = pg_hidden_channels > 0
         self.use_mlp_phys = phys_hidden_channels > 0 and phys_embeds
-        self.use_positional_embeds = graph_rewiring in {
-            "one-supernode-per-graph",
-            "one-supernode-per-atom-type",
-            "one-supernode-per-atom-type-dist",
-        }
         self.second_layer_MLP = second_layer_MLP
-        self.edge_embed_type = edge_embed_type
 
         # --- Node embedding ---
 
@@ -81,10 +67,6 @@ class EmbeddingBlock(nn.Module):
         if tag_hidden_channels:
             self.tag_embedding = Embedding(3, tag_hidden_channels)
 
-        # Positional encoding
-        if self.use_positional_embeds:
-            self.pe = PositionalEncoding(hidden_channels, 210)
-
         # Main embedding
         self.emb = Embedding(
             85,
@@ -100,21 +82,8 @@ class EmbeddingBlock(nn.Module):
             self.lin_2 = Linear(hidden_channels, hidden_channels)
 
         # --- Edge embedding ---
-
-        # TODO: change some num_filters to edge_embed_hidden
-        if self.edge_embed_type == "rij":
-            self.lin_e1 = Linear(3, num_filters)
-        elif self.edge_embed_type == "all_rij":
-            self.lin_e1 = Linear(3, num_filters // 2)  # r_ij
-            self.lin_e12 = Linear(
-                num_gaussians, num_filters - (num_filters // 2)
-            )  # d_ij
-        elif self.edge_embed_type == "sh":
-            self.lin_e1 = Linear(15, num_filters)
-        elif self.edge_embed_type == "all":
-            self.lin_e1 = Linear(18 + num_gaussians, num_filters)
-        else:
-            raise ValueError("edge_embedding_type does not exist")
+        self.lin_e1 = Linear(3, num_filters // 2)  # r_ij
+        self.lin_e12 = Linear(num_gaussians, num_filters - (num_filters // 2))  # d_ij
 
         if self.second_layer_MLP:
             self.lin_e2 = Linear(num_filters, num_filters)
@@ -139,40 +108,13 @@ class EmbeddingBlock(nn.Module):
             self.lin_2.bias.data.fill_(0)
             nn.init.xavier_uniform_(self.lin_e2.weight)
             self.lin_e2.bias.data.fill_(0)
-        if self.edge_embed_type == "all_rij":
-            nn.init.xavier_uniform_(self.lin_e12.weight)
-            self.lin_e12.bias.data.fill_(0)
 
-    def forward(
-        self, z, rel_pos, edge_attr, tag=None, normalised_rel_pos=None, subnodes=None
-    ):
+    def forward(self, z, rel_pos, edge_attr, tag=None, subnodes=None):
 
         # --- Edge embedding --
-
-        if self.edge_embed_type == "rij":
-            e = self.lin_e1(rel_pos)
-        elif self.edge_embed_type == "all_rij":
-            rel_pos = self.lin_e1(rel_pos)  # r_ij
-            edge_attr = self.lin_e12(edge_attr)  # d_ij
-            e = torch.cat((rel_pos, edge_attr), dim=1)
-        elif self.edge_embed_type == "sh":
-            self.sh = spherical_harmonics(
-                l=[1, 2, 3],
-                x=normalised_rel_pos,
-                normalize=False,
-                normalization="component",
-            )
-            e = self.lin_e1(self.sh)
-        elif self.edge_embed_type == "all":
-            self.sh = spherical_harmonics(
-                l=[1, 2, 3],
-                x=normalised_rel_pos,
-                normalize=False,
-                normalization="component",
-            )
-            e = torch.cat((rel_pos, self.sh, edge_attr), dim=1)
-            e = self.lin_e1(e)
-
+        rel_pos = self.lin_e1(rel_pos)  # r_ij
+        edge_attr = self.lin_e12(edge_attr)  # d_ij
+        e = torch.cat((rel_pos, edge_attr), dim=1)
         e = self.act(e)  # can comment out
 
         if self.second_layer_MLP:
@@ -205,13 +147,6 @@ class EmbeddingBlock(nn.Module):
             h_group = self.group_embedding(self.phys_emb.group[z])
             h = torch.cat((h, h_period, h_group), dim=1)
 
-        # Add positional embedding
-        if self.use_positional_embeds:
-            idx_of_non_zero_val = (tag == 0).nonzero().T.squeeze(0)
-            h_pos = torch.zeros_like(h, device=h.device)
-            h_pos[idx_of_non_zero_val, :] = self.pe(subnodes).to(device=h_pos.device)
-            h += h_pos
-
         # MLP
         h = self.act(self.lin(h))
         if self.second_layer_MLP:
@@ -228,7 +163,6 @@ class InteractionBlock(MessagePassing):
         act,
         mp_type,
         complex_mp,
-        att_heads,
         graph_norm,
     ):
         super(InteractionBlock, self).__init__()
@@ -243,14 +177,10 @@ class InteractionBlock(MessagePassing):
             )
 
         if self.mp_type == "simple":
-            self.lin_geom = nn.Linear(num_filters, hidden_channels)
-            self.lin_h = nn.Linear(hidden_channels, hidden_channels)
-
-        elif self.mp_type == "sfarinet":
             self.lin_h = nn.Linear(hidden_channels, hidden_channels)
 
         elif self.mp_type == "updownscale":
-            self.lin_geom = nn.Linear(num_filters, num_filters)  # like 'simple'
+            self.lin_geom = nn.Linear(num_filters, num_filters)
             self.lin_down = nn.Linear(hidden_channels, num_filters)
             self.lin_up = nn.Linear(num_filters, hidden_channels)
 
@@ -258,32 +188,6 @@ class InteractionBlock(MessagePassing):
             self.lin_geom = nn.Linear(num_filters + 2 * hidden_channels, num_filters)
             self.lin_down = nn.Linear(hidden_channels, num_filters)
             self.lin_up = nn.Linear(num_filters, hidden_channels)
-
-        elif self.mp_type == "base_with_att":
-            self.lin_h = nn.Linear(hidden_channels, hidden_channels)
-            # self.lin_geom = AttConv(hidden_channels, heads=1, concat=True, bias=True)
-            self.lin_geom = TransfoAttConv(
-                hidden_channels,
-                hidden_channels,
-                heads=att_heads,
-                concat=False,
-                root_weight=False,
-                edge_dim=num_filters,
-            )
-        elif self.mp_type == "att":
-            self.lin_h = nn.Linear(hidden_channels, hidden_channels)
-            self.lin_geom = TransformerConv(
-                hidden_channels,
-                hidden_channels,
-                heads=att_heads,
-                concat=False,
-                root_weight=False,
-                edge_dim=num_filters,
-            )
-
-        elif self.mp_type == "local_env":
-            self.lin_geom = nn.Linear(num_filters, hidden_channels)
-            self.lin_h = nn.Linear(hidden_channels, hidden_channels)
 
         elif self.mp_type == "updown_local_env":
             self.lin_down = nn.Linear(hidden_channels, num_filters)
@@ -302,7 +206,7 @@ class InteractionBlock(MessagePassing):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.mp_type not in {"sfarinet", "att", "base_with_att"}:
+        if self.mp_type != "simple":
             nn.init.xavier_uniform_(self.lin_geom.weight)
             self.lin_geom.bias.data.fill_(0)
         if self.complex_mp:
@@ -324,13 +228,11 @@ class InteractionBlock(MessagePassing):
             e = torch.cat([e, h[edge_index[0]], h[edge_index[1]]], dim=1)
 
         if self.mp_type in {
-            "simple",
             "updownscale",
             "base",
             "updownscale_base",
-            "local_env",
         }:
-            e = self.act(self.lin_geom(e))  # TODO: remove act() ?
+            e = self.act(self.lin_geom(e))
 
         # --- Message Passing block --
 
@@ -340,26 +242,6 @@ class InteractionBlock(MessagePassing):
             if self.graph_norm:
                 h = self.act(self.graph_norm(h))
             h = self.act(self.lin_up(h))  # upscale node rep.
-
-        elif self.mp_type == "att":
-            h = self.lin_geom(h, edge_index, edge_attr=e)
-            if self.graph_norm:
-                h = self.act(self.graph_norm(h))
-            h = self.act(self.lin_h(h))
-
-        elif self.mp_type == "base_with_att":
-            h = self.lin_geom(h, edge_index, edge_attr=e)  # propagate is inside
-            if self.graph_norm:
-                h = self.act(self.graph_norm(h))
-            h = self.act(self.lin_h(h))
-
-        elif self.mp_type == "local_env":
-            chi = self.propagate(edge_index, x=h, W=e, local_env=True)
-            h = self.propagate(edge_index, x=h, W=e)  # propagate
-            h = h + chi
-            if self.graph_norm:
-                h = self.act(self.graph_norm(h))
-            h = h = self.act(self.lin_h(h))
 
         elif self.mp_type == "updown_local_env":
             h = self.act(self.lin_down(h))
@@ -371,7 +253,7 @@ class InteractionBlock(MessagePassing):
             h = torch.cat((h, chi), dim=1)
             h = self.lin_up(h)
 
-        elif self.mp_type in {"base", "simple", "sfarinet"}:
+        elif self.mp_type in {"base", "simple"}:
             h = self.propagate(edge_index, x=h, W=e)  # propagate
             if self.graph_norm:
                 h = self.act(self.graph_norm(h))
@@ -401,18 +283,7 @@ class OutputBlock(nn.Module):
         self.lin1 = Linear(hidden_channels, hidden_channels // 2)
         self.lin2 = Linear(hidden_channels // 2, 1)
 
-        # weighted average & pooling
-        if self.energy_head in {"pooling", "random"}:
-            self.hierarchical_pooling = Hierarchical_Pooling(
-                hidden_channels,
-                self.act,
-                NUM_POOLING_LAYERS,
-                NUM_CLUSTERS,
-                self.energy_head,
-            )
-        elif self.energy_head == "graclus":
-            self.graclus = Graclus(hidden_channels, self.act)
-        elif self.energy_head == "weighted-av-final-embeds":
+        if self.energy_head == "weighted-av-final-embeds":
             self.w_lin = Linear(hidden_channels, 1)
 
     def reset_parameters(self):
@@ -427,14 +298,6 @@ class OutputBlock(nn.Module):
     def forward(self, h, edge_index, edge_weight, batch, alpha):
         if self.energy_head == "weighted-av-final-embeds":
             alpha = self.w_lin(h)
-
-        elif self.energy_head == "graclus":
-            h, batch = self.graclus(h, edge_index, edge_weight, batch)
-
-        elif self.energy_head in {"pooling", "random"}:
-            h, batch, pooling_loss = self.hierarchical_pooling(
-                h, edge_index, edge_weight, batch
-            )
 
         # MLP
         h = self.lin1(h)
@@ -466,8 +329,6 @@ class FAENet(BaseModel):
         max_num_neighbors (int): The maximum number of neighbors to
             collect for each node within the :attr:`cutoff` distance.
             (default: :obj:`32`)
-        graph_rewiring (str): Method used to create the graph,
-            among "", remove-tag-0, supernodes.
         energy_head (str): Method to compute energy prediction
             from atom representations.
         hidden_channels (int): Hidden embedding size.
@@ -486,12 +347,7 @@ class FAENet(BaseModel):
         second_layer_MLP (bool): use 2-layers MLP at the end of the Embedding block.
         skip_co (str): add a skip connection between each interaction block and
             energy-head. ("add", False, "concat", "concat_atom")
-        edge_embed_type (str, in {'rij','all_rij','sh', 'all'}): input feature
-            of the edge embedding block.
-        edge_embed_hidden (int): size of edge representation.
-            could be num_filters or hidden_channels.
-        mp_type (str, in {'base', 'simple', 'updownscale', 'att', 'base_with_att', 'local_env'
-            'updownscale_base', 'updownscale', 'updown_local_env', 'sfarinet'}}):
+        mp_type (str, in {'base', 'updownscale_base', 'updownscale', 'updown_local_env', 'simple'}}):
             specificies the MP of the interaction block.
         graph_norm (bool): whether to apply batch norm after every linear layer.
         complex_mp (bool); whether to add a second layer MLP at the end of each Interaction
@@ -500,16 +356,12 @@ class FAENet(BaseModel):
     def __init__(
         self,
         act: str = "swish",
-        att_heads: int = 0,
         complex_mp: bool = False,
         cutoff: float = 5.0,
-        edge_embed_hidden: int = 128,
-        edge_embed_type: str = "all_rij",
         energy_head: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
         force_decoder_model_config: Optional[Dict] = {"hidden_channels": 128},
         graph_norm: bool = True,
-        graph_rewiring: Optional[str] = None,
         hidden_channels: int = 128,
         max_num_neighbors: int = 40,
         mp_type: str = "updownscale_base",
@@ -529,16 +381,12 @@ class FAENet(BaseModel):
         super(FAENet, self).__init__()
 
         self.act = act
-        self.att_heads = att_heads
         self.complex_mp = complex_mp
         self.cutoff = cutoff
-        self.edge_embed_hidden = edge_embed_hidden
-        self.edge_embed_type = edge_embed_type
         self.energy_head = energy_head
         self.force_decoder_type = force_decoder_type
         self.force_decoder_model_config = force_decoder_model_config
         self.graph_norm = graph_norm
-        self.graph_rewiring = graph_rewiring
         self.hidden_channels = hidden_channels
         self.max_num_neighbors = max_num_neighbors
         self.mp_type = mp_type
@@ -561,7 +409,7 @@ class FAENet(BaseModel):
             )
             self.regress_forces = ""
 
-        if self.mp_type == "sfarinet":
+        if self.mp_type == "simple":
             self.num_filters = self.hidden_channels
 
         self.act = (
@@ -574,11 +422,6 @@ class FAENet(BaseModel):
             + "describing that function in torch.nn.functional"
         )
 
-        self.use_positional_embeds = self.graph_rewiring in {
-            "one-supernode-per-graph",
-            "one-supernode-per-atom-type",
-            "one-supernode-per-atom-type-dist",
-        }
         # Gaussian Basis
         self.distance_expansion = GaussianSmearing(0.0, self.cutoff, self.num_gaussians)
 
@@ -591,10 +434,8 @@ class FAENet(BaseModel):
             self.pg_hidden_channels,
             self.phys_hidden_channels,
             self.phys_embeds,
-            self.graph_rewiring,
             self.act,
             self.second_layer_MLP,
-            self.edge_embed_type,
         )
 
         # Interaction block
@@ -606,7 +447,6 @@ class FAENet(BaseModel):
                     self.act,
                     self.mp_type,
                     self.complex_mp,
-                    self.att_heads,
                     self.graph_norm,
                 )
                 for _ in range(self.num_interactions)
@@ -683,15 +523,8 @@ class FAENet(BaseModel):
             edge_weight = rel_pos.norm(dim=-1)
             edge_attr = self.distance_expansion(edge_weight)
 
-        # Normalize and squash to [0,1] for gaussian basis
-        rel_pos_normalized = None
-        if self.edge_embed_type in {"sh", "all_rij", "all"}:
-            rel_pos_normalized = (rel_pos / edge_weight.view(-1, 1) + 1) / 2.0
-
-        pooling_loss = None  # deal with pooling loss
-
         # Embedding block
-        h, e = self.embed_block(z, rel_pos, edge_attr, data.tags, rel_pos_normalized)
+        h, e = self.embed_block(z, rel_pos, edge_attr, data.tags)
 
         # Compute atom weights for late energy head
         if self.energy_head == "weighted-av-initial-embeds":
@@ -724,6 +557,6 @@ class FAENet(BaseModel):
         elif self.skip_co == "add":
             energy = sum(energy_skip_co)
 
-        preds = {"energy": energy, "pooling_loss": pooling_loss, "hidden_state": h}
+        preds = {"energy": energy, "hidden_state": h}
 
         return preds

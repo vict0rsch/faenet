@@ -5,16 +5,12 @@ import t_utils as tu  # noqa: F401
 from faenet import FAENet
 
 defaults = {
-    "att_heads": 0,
     "complex_mp": False,
     "cutoff": 5.0,
-    "edge_embed_hidden": 64,
-    "edge_embed_type": "all_rij",
     "energy_head": None,
     "force_decoder_type": "mlp",
     "force_decoder_model_config": {"hidden_channels": 16},
     "graph_norm": True,
-    "graph_rewiring": None,
     "hidden_channels": 64,
     "max_num_neighbors": 40,
     "mp_type": "updownscale_base",
@@ -32,34 +28,18 @@ defaults = {
 }
 
 init_space = {
-    "att_heads": [0, 1],
     "complex_mp": [False, True],
-    "edge_embed_type": ["rij", "all_rij", "sh", "all"],
     "energy_head": [
         None,
-        "graclus",
-        "pooling",
-        "random",
         "weighted-av-initial-embeds",
         "weighted-av-final-embeds",
     ],
     "force_decoder_type": ["mlp", "simple", ""],
     "graph_norm": [False, True],
-    "graph_rewiring": [
-        None,
-        "remove-tag-0",
-        "one-supernode-per-graph",
-        "one-supernode-per-atom-type",
-        "one-supernode-per-atom-type-dist",
-    ],
     "mp_type": [
         "simple",
-        "sfarinet",
         "updownscale",
         "updownscale_base",
-        "base_with_att",
-        "att",
-        "local_env",
         "updown_local_env",
         "base",
     ],
