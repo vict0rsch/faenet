@@ -1,6 +1,5 @@
-# This folder contains a stand-alone implementation of FAENet
-# which can also be found in ocpmodels/models/faenet.py
-""" Code of the Scalable Frame Averaging (Rotation Invariant) GNN
+"""
+Code of the Scalable Frame Averaging (Rotation Invariant) GNN
 """
 from typing import Optional, Dict
 

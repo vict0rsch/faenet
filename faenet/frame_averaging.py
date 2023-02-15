@@ -4,7 +4,7 @@ from itertools import product
 
 import torch
 
-from faenet.utils import RandomRotate
+from faenet.transforms import RandomRotate
 
 
 def all_frames(eigenvec, pos, cell, fa_frames="random", pos_3D=None, det_index=0):
