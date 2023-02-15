@@ -14,12 +14,7 @@ from torch_scatter import scatter
 from faenet.base_model import BaseModel
 from faenet.embedding import PhysEmbedding
 from faenet.force_decoder import ForceDecoder
-from faenet.utils import get_pbc_distances, GaussianSmearing
-
-try:
-    from torch_geometric.nn.acts import swish
-except ImportError:
-    from torch_geometric.nn.resolver import swish
+from faenet.utils import get_pbc_distances, GaussianSmearing, swish
 
 
 class EmbeddingBlock(nn.Module):
