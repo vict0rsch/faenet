@@ -17,14 +17,14 @@
 # TODO
 
 * Functional
-  * [ ] averaging function
+  * [ ] refactor averaging function
   * [ ] data loader utils / transforms (graph & FA)
   * [ ] eval symmetries
   * [ ] EC loss interface
   * [ ] clean up faenet mp options
   * [ ] ForceDecoder takes a single model config now not a dict of configs per type
   * [ ] idea: forcedecoder as nn module
-* [ ] Release
+* Release
   * [ ] update default args to paper HPs
   * [ ] documentation
   * [ ] check att heads > 0 if "att" in mp_type -> tests & model
