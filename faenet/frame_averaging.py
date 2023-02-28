@@ -128,7 +128,8 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic"):
     Args:
         pos (tensor): positions of atoms in the graph
         cell (tensor): unit cell of the graph
-        fa_method (str): FA method used (stochastic, det, all, se3)
+        fa_method (str): FA method used 
+            (stochastic, det, all, se3-all, se3-det, se3-stochastic)
 
     Returns:
         tensor: updated atom positions
@@ -150,7 +151,7 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic"):
 
     # Compute fa_pos
     fa_pos, fa_cell, fa_rot = compute_frames(
-        eigenvec, pos, cell if cell else None, fa_method
+        eigenvec, pos, cell, fa_method
     )
 
     # No need to update distances, they are preserved.
@@ -165,7 +166,7 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic"):
     Args:
         pos (tensor): positions of atoms in the graph
         cell (tensor): unit cell of the graph
-        fa_method (str): FA method used (to, det, all, se3)
+        fa_method (str): FA method used (stochastic, det, all, se3)
 
     Returns:
         tensor: updated atom positions
@@ -186,7 +187,7 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic"):
 
     # Compute all frames
     fa_pos, fa_cell, fa_rot = compute_frames(
-        eigenvec, pos_2D, cell if cell else None, fa_method, pos[:, 2]
+        eigenvec, pos_2D, cell, fa_method, pos[:, 2]
     )
     # No need to update distances, they are preserved.
 
