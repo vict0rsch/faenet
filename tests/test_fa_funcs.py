@@ -1,12 +1,12 @@
 import pytest
 import t_utils as tu
-from faenet import frame_averaging_3D, frame_averaging_2D
+from faenet import frame_averaging_3D, frame_averaging_2D, check_constraints
+from faenet.utils import get_pbc_distances
 from torch_geometric.data import Batch
 import torch
 from copy import deepcopy
 import math
 import random
-
 
 
 def test_frame_averaging_3D():
@@ -17,6 +17,7 @@ def test_frame_averaging_3D():
             pos, cell, rot = frame_averaging_3D(g.pos, g.cell, fa_method=method)
             assert (pos[0] != g.pos).any().item() # Check that positions have changed
             assert (cell[0] != g.cell).any().item() # Check that cell has changed
+            check_constraints(pos[0], cell[0], rot[0])
 
             # Check correct dimensions are returned for all FA methods
             if method == "all":
@@ -52,6 +53,12 @@ def test_frame_averaging_2D():
             assert rot[0].shape == (1, 3, 3)
         break
 
+def test_check_constraints():
+    """Check that the FA requirements are satisfied"""
+    batch = tu.get_batch()
+    for i in range(len(batch.sid)):
+        g = Batch.get_example(batch, i)
+        frame_averaging_3D(g.pos, g.cell, fa_method="stochastic", check=True)
 
 def test_rotation_invariance():
     """Check that frame averaging is rotation invariant."""
@@ -84,7 +91,34 @@ def test_rotation_invariance():
         assert torch.abs(cell_diff).sum() < 1e-2
 
 
+def test_distance_preservation():
+    """Check that distances are preserved with PBC when applying rotations on the graph."""
+    batch = tu.get_batch()
+    for i in range(len(batch.sid)):
+        g = Batch.get_example(batch, i)
+        out = get_pbc_distances(
+            g.pos,
+            g.edge_index,
+            g.cell,
+            g.cell_offsets,
+            batch.neighbors[i],
+            return_distance_vec=True,
+        )
+        init_distances = out["distances"]
 
-# Check constraints 
-# Check that rotated / reflected graph have the same frame
-# Test that pbc distances are preserved
+        # Repeat for projected graph
+        g.fa_pos, g.fa_cell, _ = frame_averaging_3D(g.pos, g.cell, fa_method="all")
+        fa_out = get_pbc_distances(
+            g.fa_pos[0],
+            g.edge_index,
+            g.fa_cell[0],
+            g.cell_offsets,
+            batch.neighbors[i],
+            return_distance_vec=True,
+        )
+        fa_distances = fa_out["distances"]
+
+        assert torch.allclose(init_distances, fa_distances, atol=1e-03)
+
+
+# Check constraints

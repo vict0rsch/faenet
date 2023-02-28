@@ -122,7 +122,7 @@ def check_constraints(eigenval, eigenvec, dim):
         print("Determinant is not 1")
 
 
-def frame_averaging_3D(pos, cell=None, fa_method="stochastic"):
+def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
     """Computes new positions for the graph atoms using PCA
 
     Args:
@@ -130,6 +130,7 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic"):
         cell (tensor): unit cell of the graph
         fa_method (str): FA method used 
             (stochastic, det, all, se3-all, se3-det, se3-stochastic)
+        check (bool): check if constraints are satisfied. Default: False.
 
     Returns:
         tensor: updated atom positions
@@ -149,6 +150,10 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic"):
     eigenvec = eigenvec[:, idx]
     eigenval = eigenval[idx]
 
+    # Check if constraints are satisfied
+    if check:
+        check_constraints(eigenval, eigenvec, 3)
+
     # Compute fa_pos
     fa_pos, fa_cell, fa_rot = compute_frames(
         eigenvec, pos, cell, fa_method
@@ -159,7 +164,7 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic"):
     return fa_pos, fa_cell, fa_rot
 
 
-def frame_averaging_2D(pos, cell=None, fa_method="stochastic"):
+def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
     """Computes new positions for the graph atoms,
     based on a frame averaging building on PCA.
 
@@ -167,6 +172,7 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic"):
         pos (tensor): positions of atoms in the graph
         cell (tensor): unit cell of the graph
         fa_method (str): FA method used (stochastic, det, all, se3)
+        check (bool): check if constraints are satisfied. Default: False.
 
     Returns:
         tensor: updated atom positions
@@ -184,6 +190,10 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic"):
     idx = eigenval.argsort(descending=True)
     eigenval = eigenval[idx]
     eigenvec = eigenvec[:, idx]
+
+    # Check if constraints are satisfied
+    if check:
+        check_constraints(eigenval, eigenvec, 3)
 
     # Compute all frames
     fa_pos, fa_cell, fa_rot = compute_frames(
