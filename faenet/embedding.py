@@ -10,13 +10,14 @@ class PhysEmbedding(nn.Module):
         Create physical embeddings meta class with sub-emeddings for each atom
 
         Args:
-            props (bool, optional): Whether to create an embedding of physical
-                embeddings. Defaults to True.
-            props_grad (bool, optional): Whether the physical properties embedding
-                should be learned or kept fixed. Defaults to False.
-            pg (bool, optional): Whether to use period and group embeddings.
+            props (bool, optional): Create an embedding of physical
+                properties. Default to True.
+            props_grad (bool, optional): Learn a physics-aware embedding
+                instead of keeping it fixed. Default to False.
+            pg (bool, optional): Learn two embeddings based on period and 
+                group information respectively. Default to False.
+            short (bool, optional): Remove all columns containing NaN values.
                 Defaults to False.
-            short (bool, optional)
         """
         super().__init__()
 
