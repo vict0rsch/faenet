@@ -14,7 +14,7 @@ class PhysEmbedding(nn.Module):
                 properties. Default to True.
             props_grad (bool, optional): Learn a physics-aware embedding
                 instead of keeping it fixed. Default to False.
-            pg (bool, optional): Learn two embeddings based on period and 
+            pg (bool, optional): Learn two embeddings based on period and
                 group information respectively. Default to False.
             short (bool, optional): Remove all columns containing NaN values.
                 Defaults to False.
