@@ -2,7 +2,7 @@
 # which can also be found in ocpmodels/models/faenet.py
 """ Code of the Scalable Frame Averaging (Rotation Invariant) GNN
 """
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import torch
 from torch import nn
@@ -14,7 +14,7 @@ from torch_scatter import scatter
 from faenet.base_model import BaseModel
 from faenet.embedding import PhysEmbedding
 from faenet.force_decoder import ForceDecoder
-from faenet.utils import get_pbc_distances, GaussianSmearing
+from faenet.utils import GaussianSmearing, get_pbc_distances
 
 try:
     from torch_geometric.nn.acts import swish
@@ -110,7 +110,6 @@ class EmbeddingBlock(nn.Module):
             self.lin_e2.bias.data.fill_(0)
 
     def forward(self, z, rel_pos, edge_attr, tag=None, subnodes=None):
-
         # --- Edge embedding --
         rel_pos = self.lin_e1(rel_pos)  # r_ij
         edge_attr = self.lin_e12(edge_attr)  # d_ij
@@ -222,7 +221,6 @@ class InteractionBlock(MessagePassing):
             self.lin_h.bias.data.fill_(0)
 
     def forward(self, h, edge_index, e):
-
         # Define edge embedding
         if self.mp_type in {"base", "updownscale_base"}:
             e = torch.cat([e, h[edge_index[0]], h[edge_index[1]]], dim=1)
@@ -324,40 +322,53 @@ class FAENet(BaseModel):
             (default: :obj:`6.0`)
         use_pbc (bool): Use of periodic boundary conditions.
             (default: true)
-        act (str): activation function
+        act (str): Activation function
             (default: swish)
         max_num_neighbors (int): The maximum number of neighbors to
             collect for each node within the :attr:`cutoff` distance.
-            (default: :obj:`32`)
-        energy_head (str): Method to compute energy prediction
-            from atom representations.
+            (default: :obj:`40`)
         hidden_channels (int): Hidden embedding size.
             (default: :obj:`128`)
         tag_hidden_channels (int): Hidden tag embedding size.
             (default: :obj:`32`)
-        pg_hidden_channels (int): Hidden period and group embed size.
+        pg_hidden_channels (int): Hidden period and group embedding size.
             (default: obj:`32`)
-        phys_embeds (bool): Concat fixed physics-aware embeddings.
-        phys_hidden_channels (int): Hidden size of learnable phys embed.
-            (default: obj:`32`)
-        num_interactions (int): The number of interaction blocks.
+        phys_embeds (bool): Do we include fixed physics-aware embeddings.
+            (default: obj: true)
+        phys_hidden_channels (int): Hidden size of learnable physics-aware embeddings.
+            (default: obj:`0`)
+        num_interactions (int): The number of interaction (i.e. message passing) blocks.
             (default: :obj:`4`)
-        num_gaussians (int): The number of gaussians :math:`\mu`.
+        num_gaussians (int): The number of gaussians :math:`\mu` to encode distance info.
             (default: :obj:`50`)
-        second_layer_MLP (bool): use 2-layers MLP at the end of the Embedding block.
-        skip_co (str): add a skip connection between each interaction block and
-            energy-head. ("add", False, "concat", "concat_atom")
-        mp_type (str, in {'base', 'updownscale_base', 'updownscale', 'updown_local_env', 'simple'}}):
-            specificies the MP of the interaction block.
-        graph_norm (bool): whether to apply batch norm after every linear layer.
-        complex_mp (bool); whether to add a second layer MLP at the end of each Interaction
+        num_filters (int): The size of convolutional filters.
+            (default: :obj:`128`)
+        second_layer_MLP (bool): Use 2-layers MLP at the end of the Embedding block.
+            (default: :obj:`False`)
+        skip_co (str): Add a skip connection between each interaction block and
+            energy-head. (False, "add", "concat", "concat_atom")
+        mp_type (str): Specificies the Message Passing type of the interaction block.
+            ("base", "updownscale_base", "updownscale", "updown_local_env", "simple"):
+        graph_norm (bool): Whether to apply batch norm after every linear layer.
+            (default: :obj:`True`)
+        complex_mp (bool); Whether to add a second layer MLP at the end of each Interaction
+            (default: :obj:`True`)
+        energy_head (str): Method to compute energy prediction
+            from atom representations.
+            (None, "weighted-av-initial-embeds", "weighted-av-final-embeds")
+        regress_forces (str): Specifies if we predict forces or not, and how
+            do we predict them. ("", "direct", "direct_with_gradient_target", False or None)
+        force_decoder_type (str): Specifies the type of force decoder
+            ("simple", "mlp")
+        force_decoder_model_config (dict): contains information about the
+            for decoder architecture (e.g. number of layers, hidden size).
     """
 
     def __init__(
         self,
         act: str = "swish",
         complex_mp: bool = False,
-        cutoff: float = 5.0,
+        cutoff: float = 6.0,
         energy_head: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
         force_decoder_model_config: Optional[Dict] = {"hidden_channels": 128},
@@ -373,11 +384,10 @@ class FAENet(BaseModel):
         phys_hidden_channels: int = 0,
         regress_forces: bool = False,
         second_layer_MLP: bool = True,
-        skip_co: str = True,
+        skip_co: str = "concat",
         tag_hidden_channels: int = 32,
         use_pbc: bool = True,
     ):
-
         super(FAENet, self).__init__()
 
         self.act = act

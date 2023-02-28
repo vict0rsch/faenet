@@ -1,10 +1,9 @@
-import torch
-import torch.nn as nn
-
 import math
 import numbers
 import random
 
+import torch
+import torch.nn as nn
 import torch_geometric
 from torch_geometric.transforms import LinearTransformation
 
@@ -18,6 +17,7 @@ def get_pbc_distances(
     return_offsets=False,
     return_distance_vec=False,
 ):
+    """Compute distances between atoms with periodic boundary conditions"""
     row, col = edge_index
 
     distance_vectors = pos[row] - pos[col]
@@ -49,7 +49,10 @@ def get_pbc_distances(
 
     return out
 
+
 class GaussianSmearing(nn.Module):
+    r"""Smears a distance distribution by a Gaussian function."""
+
     def __init__(self, start=0.0, stop=5.0, num_gaussians=50):
         super().__init__()
         offset = torch.linspace(start, stop, num_gaussians)
@@ -60,9 +63,11 @@ class GaussianSmearing(nn.Module):
         dist = dist.view(-1, 1) - self.offset.view(1, -1)
         return torch.exp(self.coeff * torch.pow(dist, 2))
 
+
 class RandomRotate(object):
     r"""Rotates node positions around a specific axis by a randomly sampled
     factor within a given interval.
+
     Args:
         degrees (tuple or float): Rotation interval from which the rotation
             angle is sampled. If `degrees` is a number instead of a
@@ -128,8 +133,7 @@ class RandomRotate(object):
 
 
 class RandomReflect(object):
-    r"""Reflect node positions around a specific axis (x, y, x=y) or the origin
-    z-axis remains fixed.
+    r"""Reflect node positions around a specific axis (x, y, x=y) or the origin.
     Info -- type 0: reflect wrt x-axis, type1: wrt y-axis, type2: y=x, type3: origin
     """
 
