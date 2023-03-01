@@ -1,3 +1,9 @@
+<p align="center">
+<strong><a href="https://github.com/vict0rsch/faenet" target="_blank">Code</a></strong>
+<strong>&nbsp;&nbsp;•&nbsp;&nbsp;</strong>
+<strong><a href="https://faenet.readthedocs.io/" target="_blank">Docs</a></strong>
+</p>
+
 # FAENet
 
 ## Installation
