@@ -12,13 +12,6 @@ from faenet.frame_averaging import (
     data_augmentation,
 )
 
-from faenet.graph_rewiring import (
-    remove_tag0_nodes,
-    one_supernode_per_graph,
-    one_supernode_per_atom_type,
-    one_supernode_per_atom_type_dist,
-)
-
 
 class Transform:
     def __call__(self, data):
@@ -76,36 +69,6 @@ class FrameAveraging(Transform):
         if self.inactive:
             return data
         return self.fa_func(data, self.fa_frames)
-
-
-class GraphRewiring(Transform):
-    def __init__(self, rewiring_type=None) -> None:
-        self.rewiring_type = rewiring_type
-
-        self.inactive = not self.rewiring_type
-
-        if self.rewiring_type:
-            if self.rewiring_type == "remove-tag-0":
-                self.rewiring_func = remove_tag0_nodes
-            elif self.rewiring_type == "one-supernode-per-graph":
-                self.rewiring_func = one_supernode_per_graph
-            elif self.rewiring_type == "one-supernode-per-atom-type":
-                self.rewiring_func = one_supernode_per_atom_type
-            elif self.rewiring_type == "one-supernode-per-atom-type-dist":
-                self.rewiring_func = one_supernode_per_atom_type_dist
-            else:
-                raise ValueError(f"Unknown self.graph_rewiring {self.graph_rewiring}")
-
-    def __call__(self, data):
-        if self.inactive:
-            return data
-
-        data.batch = torch.zeros(data.num_nodes, dtype=torch.long)
-        data.natoms = torch.tensor([data.natoms])
-        data.ptr = torch.tensor([0, data.natoms])
-
-        return self.rewiring_func(data)
-
 
 class RandomRotate(Transform):
     r"""Rotates node positions around a specific axis by a randomly sampled

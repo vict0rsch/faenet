@@ -22,11 +22,10 @@
   * [ ] eval symmetries
   * [ ] EC loss interface
   * [ ] clean up faenet mp options
-  * [ ] ForceDecoder takes a single model config now not a dict of configs per type
-  * [ ] idea: forcedecoder as nn module
+  * [ ] ForceDecoder: merge mlp type and hidden channels in dict
+  * [x] idea: forcedecoder as nn module
 * Release
-  * [ ] update default args to paper HPs
+  * [ ] update default args to the ones used in FAENet paper
   * [ ] documentation
-  * [ ] check att heads > 0 if "att" in mp_type -> tests & model
-  * [ ] document sample data
-  * [ ] check docstrings
+  * [x] check att heads > 0 if "att" in mp_type -> tests & model
+  * [ ] document sample data (is2re_bs3)
