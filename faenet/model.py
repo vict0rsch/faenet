@@ -326,17 +326,17 @@ class FAENet(BaseModel):
             (default: swish)
         max_num_neighbors (int): The maximum number of neighbors to
             collect for each node within the :attr:`cutoff` distance.
-            (default: :obj:`40`)
+            (default: ``40``)
         hidden_channels (int): Hidden embedding size.
-            (default: :obj:`128`)
+            (default: ``128``)
         tag_hidden_channels (int): Hidden tag embedding size.
             (default: :obj:`32`)
         pg_hidden_channels (int): Hidden period and group embedding size.
-            (default: obj:`32`)
+            (default: :obj:`32`)
         phys_embeds (bool): Do we include fixed physics-aware embeddings.
-            (default: obj: true)
+            (default: :obj: true)
         phys_hidden_channels (int): Hidden size of learnable physics-aware embeddings.
-            (default: obj:`0`)
+            (default: :obj:`0`)
         num_interactions (int): The number of interaction (i.e. message passing) blocks.
             (default: :obj:`4`)
         num_gaussians (int): The number of gaussians :math:`\mu` to encode distance info.

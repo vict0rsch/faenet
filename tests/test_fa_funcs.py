@@ -119,6 +119,3 @@ def test_distance_preservation():
         fa_distances = fa_out["distances"]
 
         assert torch.allclose(init_distances, fa_distances, atol=1e-03)
-
-
-# Check constraints
