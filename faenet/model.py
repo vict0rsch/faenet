@@ -1,6 +1,5 @@
-# This folder contains a stand-alone implementation of FAENet
-# which can also be found in ocpmodels/models/faenet.py
-""" Code of the Scalable Frame Averaging (Rotation Invariant) GNN
+"""
+Code of the Scalable Frame Averaging (Rotation Invariant) GNN
 """
 from typing import Dict, Optional
 
@@ -14,12 +13,7 @@ from torch_scatter import scatter
 from faenet.base_model import BaseModel
 from faenet.embedding import PhysEmbedding
 from faenet.force_decoder import ForceDecoder
-from faenet.utils import GaussianSmearing, get_pbc_distances
-
-try:
-    from torch_geometric.nn.acts import swish
-except ImportError:
-    from torch_geometric.nn.resolver import swish
+from faenet.utils import get_pbc_distances, GaussianSmearing, swish
 
 
 class EmbeddingBlock(nn.Module):

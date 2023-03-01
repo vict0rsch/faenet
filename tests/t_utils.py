@@ -4,7 +4,7 @@ from pathlib import Path
 import torch
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_PATH = ROOT / "examples/data/is2re_bs8.pt"
+DATA_PATH = ROOT / "examples/data/is2re_bs3.pt"
 BATCH = None
 
 sys.path.insert(0, str(ROOT))
