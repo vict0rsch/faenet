@@ -17,15 +17,20 @@
 # TODO
 
 * Functional
-  * [ ] refactor averaging function
-  * [ ] data loader utils / transforms (graph & FA)
-  * [ ] eval symmetries
+  * [ ] Refactor averaging function (model_forward)
+  * [ ] Data loader utils / transforms (graph & FA)
   * [ ] EC loss interface
-  * [ ] clean up faenet mp options
+  * [ ] Clean up faenet mp options
+  * [ ] Update default args to the ones used in FAENet paper
+  * [ ] Documentation
+  * [ ] Document sample data (is2re_bs3)
   * [ ] ForceDecoder: merge mlp type and hidden channels in dict
-  * [x] idea: forcedecoder as nn module
-* Release
-  * [ ] update default args to the ones used in FAENet paper
-  * [ ] documentation
-  * [x] check att heads > 0 if "att" in mp_type -> tests & model
-  * [ ] document sample data (is2re_bs3)
+  * [ ] ForceDecoder: update it
+  * [ ] Import last changes from ICML cleanup
+  * [ ] Remove se3-multiple, se3-det
+  * [x] Implement faenet
+  * [x] Implement FA/SFA
+  * [x] Eval symmetries
+  * [x] Idea: forcedecoder as nn module  
+  * [x] Check att heads > 0 if "att" in mp_type -> tests & model
+  
