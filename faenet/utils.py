@@ -8,6 +8,9 @@ import torch_geometric
 from torch_geometric.transforms import LinearTransformation
 
 
+def swish(x):
+    return torch.nn.functional.silu(x)
+
 def get_pbc_distances(
     pos,
     edge_index,
