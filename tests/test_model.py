@@ -34,7 +34,7 @@ init_space = {
         "weighted-av-initial-embeds",
         "weighted-av-final-embeds",
     ],
-    "force_decoder_type": ["mlp", "simple", ""],
+    "force_decoder_type": ["mlp", "simple", "", "res", "res_updown"],
     "graph_norm": [False, True],
     "mp_type": [
         "simple",
@@ -45,7 +45,7 @@ init_space = {
     ],
     "phys_embeds": [False, True],
     "phys_hidden_channels": [0, 8],
-    "regress_forces": [False, True, "direct", "", "direct_with_gradient_target"],
+    "regress_forces": ["direct", "", "direct_with_gradient_target"],
     "second_layer_MLP": [False, True],
     "skip_co": [False, True],
     "tag_hidden_channels": [0, 8],

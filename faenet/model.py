@@ -353,7 +353,7 @@ class FAENet(BaseModel):
         regress_forces (str): Specifies if we predict forces or not, and how
             do we predict them. ("", "direct", "direct_with_gradient_target", False or None)
         force_decoder_type (str): Specifies the type of force decoder
-            ("simple", "mlp")
+            ("simple", "mlp", "res", "res_updown")
         force_decoder_model_config (dict): contains information about the
             for decoder architecture (e.g. number of layers, hidden size).
     """
