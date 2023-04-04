@@ -9,7 +9,7 @@ defaults = {
     "cutoff": 5.0,
     "energy_head": None,
     "force_decoder_type": "mlp",
-    "force_decoder_model_config": {"hidden_channels": 16},
+    "force_decoder_model_config": {"mlp": {"hidden_channels": 16}},
     "graph_norm": True,
     "hidden_channels": 64,
     "max_num_neighbors": 40,

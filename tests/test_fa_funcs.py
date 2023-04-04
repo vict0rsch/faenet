@@ -17,7 +17,6 @@ def test_frame_averaging_3D():
             pos, cell, rot = frame_averaging_3D(g.pos, g.cell, fa_method=method)
             assert (pos[0] != g.pos).any().item() # Check that positions have changed
             assert (cell[0] != g.cell).any().item() # Check that cell has changed
-            check_constraints(pos[0], cell[0], rot[0])
 
             # Check correct dimensions are returned for all FA methods
             if method == "all":
@@ -29,7 +28,6 @@ def test_frame_averaging_3D():
             assert pos[0].shape == (g.num_nodes, 3)
             assert cell[0].shape == (1, 3, 3)
             assert rot[0].shape == (1, 3, 3)
-        break
 
 
 def test_frame_averaging_2D():

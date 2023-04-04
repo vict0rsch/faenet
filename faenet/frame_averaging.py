@@ -14,7 +14,7 @@ def compute_frames(
         eigenvec (tensor): eigenvectors matrix
         pos (tensor): centered position vector
         cell (tensor): cell direction (dxd)
-        fa_method: the Frame Averaging (FA) inspired technique
+        fa_method (str): the Frame Averaging (FA) inspired technique
             chosen to select frames: stochastic-FA (stochastic), deterministic-FA (det),
             Full-FA (all) or SE(3)-FA (se3).
         pos_3D: 3rd position coordinate of atoms, for 2D FA.
@@ -28,11 +28,11 @@ def compute_frames(
     all_fa_pos = []
     all_cell = []
     all_rots = []
+    assert fa_method in {"all", "stochastic", "det", "se3-all", "se3-stochastic","se3-det"}
     se3 = fa_method in {
         "se3-all",
         "se3-stochastic",
         "se3-det",
-        "se3-multiple",
     }
     fa_cell = deepcopy(cell)
 
@@ -76,20 +76,6 @@ def compute_frames(
     if fa_method == "all" or fa_method == "se3-all":
         return all_fa_pos, all_cell, all_rots
 
-    if fa_method == "multiple" or fa_method == "se3-multiple":
-        index = torch.bernoulli(torch.tensor([0.5] * len(all_fa_pos)))
-        if index.sum() == 0:
-            index = random.randint(0, len(all_fa_pos) - 1)
-            return [all_fa_pos[index]], [all_cell[index]], [all_rots[index]]
-        if index.sum() == 1:
-            _, index = torch.max(index, dim=0)
-            return [all_fa_pos[index]], [all_cell[index]], [all_rots[index]]
-        else:
-            all_fa_pos = [a for a, b in zip(all_fa_pos, index) if b]
-            all_cell = [a for a, b in zip(all_cell, index) if b]
-            all_rots = [a for a, b in zip(all_rots, index) if b]
-            return all_fa_pos, all_cell, all_rots
-
     elif fa_method == "det" or fa_method == "se3-det":
         return [all_fa_pos[det_index]], [all_cell[det_index]], [all_rots[det_index]]
 
@@ -97,7 +83,7 @@ def compute_frames(
     return [all_fa_pos[index]], [all_cell[index]], [all_rots[index]]
 
 
-def check_constraints(eigenval, eigenvec, dim):
+def check_constraints(eigenval, eigenvec, dim=3):
     """Check requirements for frame averaging are satisfied
 
     Args:
@@ -128,7 +114,7 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
     Args:
         pos (tensor): positions of atoms in the graph
         cell (tensor): unit cell of the graph
-        fa_method (str): FA method used 
+        fa_method (str): FA method used
             (stochastic, det, all, se3-all, se3-det, se3-stochastic)
         check (bool): check if constraints are satisfied. Default: False.
 
@@ -155,9 +141,7 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
         check_constraints(eigenval, eigenvec, 3)
 
     # Compute fa_pos
-    fa_pos, fa_cell, fa_rot = compute_frames(
-        eigenvec, pos, cell, fa_method
-    )
+    fa_pos, fa_cell, fa_rot = compute_frames(eigenvec, pos, cell, fa_method)
 
     # No need to update distances, they are preserved.
 
