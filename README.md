@@ -18,16 +18,16 @@
 
 * Functional
   * [ ] Refactor averaging function (model_forward)
-  * [ ] Data loader utils / transforms (graph & FA)
+  * [x] Data loader utils / transforms (graph & FA)
   * [ ] EC loss interface
   * [ ] Clean up faenet mp options
   * [ ] Update default args to the ones used in FAENet paper
   * [ ] Documentation
   * [ ] Document sample data (is2re_bs3)
-  * [ ] ForceDecoder: merge mlp type and hidden channels in dict
-  * [ ] ForceDecoder: update it
-  * [ ] Import last changes from ICML cleanup
-  * [ ] Remove se3-multiple, se3-det
+  * [x] ForceDecoder: merge mlp type and hidden channels in dict
+  * [x] ForceDecoder: update it
+  * [x] Import last changes from ICML cleanup
+  * [x] Remove se3-multiple, se3-det
   * [x] Implement faenet
   * [x] Implement FA/SFA
   * [x] Eval symmetries

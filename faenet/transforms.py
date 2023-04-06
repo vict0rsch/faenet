@@ -9,9 +9,8 @@ from torch_geometric.transforms import LinearTransformation
 from faenet.frame_averaging import (
     frame_averaging_2D,
     frame_averaging_3D,
-    data_augmentation,
+    # data_augmentation,
 )
-
 
 class Transform:
     def __call__(self, data):
@@ -33,7 +32,7 @@ class Transform:
 class FrameAveraging(Transform):
     def __init__(self, fa_type=None, fa_frames=None):
         self.fa_frames = (
-            "random" if (fa_frames is None or fa_frames == "") else fa_frames
+            "stochastic" if (fa_frames is None or fa_frames == "") else fa_frames
         )
         self.fa_type = "" if fa_type is None else fa_type
         self.inactive = not self.fa_type
@@ -44,15 +43,13 @@ class FrameAveraging(Transform):
             "DA",
         }
         assert self.fa_frames in {
-            "",  # equivalent to random, necessary still for sweeps
-            "random",
+            "",
+            "stochastic",
             "det",
             "all",
-            "multiple",
-            "se3-random",
+            "se3-stochastic",
             "se3-det",
             "se3-all",
-            "se3-multiple",
         }
 
         if self.fa_type:
@@ -60,15 +57,16 @@ class FrameAveraging(Transform):
                 self.fa_func = frame_averaging_2D
             elif self.fa_type == "3D":
                 self.fa_func = frame_averaging_3D
-            elif self.fa_type == "DA":
-                self.fa_func = data_augmentation
+            # elif self.fa_type == "DA":
+            #     self.fa_func = data_augmentation
             else:
                 raise ValueError(f"Unknown frame averaging: {self.fa_type}")
 
     def __call__(self, data):
         if self.inactive:
             return data
-        return self.fa_func(data, self.fa_frames)
+        data.pos, data.cell, data.rot = self.fa_func(data.pos, data.cell, self.fa_frames)
+        return data
 
 class RandomRotate(Transform):
     r"""Rotates node positions around a specific axis by a randomly sampled
