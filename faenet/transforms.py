@@ -1,11 +1,3 @@
-import math
-import numbers
-import random
-
-import torch
-import torch_geometric
-from torch_geometric.transforms import LinearTransformation
-
 from faenet.frame_averaging import (
     frame_averaging_2D,
     frame_averaging_3D,
