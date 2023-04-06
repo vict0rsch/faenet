@@ -8,48 +8,47 @@ from copy import deepcopy
 import math
 import random
 
+fa_type_list = ["all", "stochastic", "det", "se3-all", "se3-stochastic", "se3-det"]
 
-def test_frame_averaging_3D():
+pytest.mark.parametrize("fa_type", fa_type_list)
+def test_frame_averaging_3D(fa_type):
     batch = tu.get_batch()
     for i in range(len(batch.sid)):
-        for method in ["all", "stochastic", "det", "se3-all", "se3-stochastic", "se3-det"]:
-            g = Batch.get_example(batch, i)
-            pos, cell, rot = frame_averaging_3D(g.pos, g.cell, fa_method=method)
-            assert (pos[0] != g.pos).any().item() # Check that positions have changed
-            assert (cell[0] != g.cell).any().item() # Check that cell has changed
+        g = Batch.get_example(batch, i)
+        pos, cell, rot = frame_averaging_3D(g.pos, g.cell, fa_method=fa_type)
+        assert (pos[0] != g.pos).any().item() # Check that positions have changed
+        assert (cell[0] != g.cell).any().item() # Check that cell has changed
 
-            # Check correct dimensions are returned for all FA methods
-            if method == "all":
-                assert len(pos) == len(rot) == len(cell) == 8
-            elif method == "se3-all":
-                assert len(pos) == len(rot) == len(cell) == 4
-            else: 
-                assert len(pos) == len(cell) == len(rot) == 1
-            assert pos[0].shape == (g.num_nodes, 3)
-            assert cell[0].shape == (1, 3, 3)
-            assert rot[0].shape == (1, 3, 3)
+        # Check correct dimensions are returned for all FA methods
+        if fa_type == "all":
+            assert len(pos) == len(rot) == len(cell) == 8
+        elif fa_type == "se3-all":
+            assert len(pos) == len(rot) == len(cell) == 4
+        else: 
+            assert len(pos) == len(cell) == len(rot) == 1
+        assert pos[0].shape == (g.num_nodes, 3)
+        assert cell[0].shape == (1, 3, 3)
+        assert rot[0].shape == (1, 3, 3)
 
-
+pytest.mark.parametrize("fa_type", fa_type_list)
 def test_frame_averaging_2D():
     batch = tu.get_batch()
     for i in range(len(batch.sid)):
-        for method in ["all", "stochastic", "det", "se3-all", "se3-stochastic", "se3-det"]:
-            g = Batch.get_example(batch, i)
-            pos, cell, rot = frame_averaging_2D(g.pos, g.cell, fa_method=method)
-            assert (pos[0] != g.pos).any().item() # Check that positions have changed
-            assert (cell[0] != g.cell).any().item() # Check that cell has changed
+        g = Batch.get_example(batch, i)
+        pos, cell, rot = frame_averaging_2D(g.pos, g.cell, fa_method=method)
+        assert (pos[0] != g.pos).any().item() # Check that positions have changed
+        assert (cell[0] != g.cell).any().item() # Check that cell has changed
 
-            # Check correct dimensions are returned for all FA methods
-            if method == "all":
-                assert len(pos) == len(rot) == len(cell) == 4
-            elif method == "se3-all":
-                assert len(pos) == len(rot) == len(cell) == 2
-            else: 
-                assert len(pos) == len(cell) == len(rot) == 1
-            assert pos[0].shape == (g.num_nodes, 3)
-            assert cell[0].shape == (1, 3, 3)
-            assert rot[0].shape == (1, 3, 3)
-        break
+        # Check correct dimensions are returned for all FA methods
+        if method == "all":
+            assert len(pos) == len(rot) == len(cell) == 4
+        elif method == "se3-all":
+            assert len(pos) == len(rot) == len(cell) == 2
+        else: 
+            assert len(pos) == len(cell) == len(rot) == 1
+        assert pos[0].shape == (g.num_nodes, 3)
+        assert cell[0].shape == (1, 3, 3)
+        assert rot[0].shape == (1, 3, 3)
 
 def test_check_constraints():
     """Check that the FA requirements are satisfied"""

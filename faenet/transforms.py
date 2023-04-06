@@ -60,5 +60,5 @@ class FrameAveraging(Transform):
         elif self.fa_type == "DA":
             return self.fa_func(data, self.fa_frames)
         else:
-            data.pos, data.cell, data.rot = self.fa_func(data.pos, data.cell, self.fa_frames)
+            data.fa_pos, data.fa_cell, data.fa_rot = self.fa_func(data.pos, data.cell, self.fa_frames)
             return data
