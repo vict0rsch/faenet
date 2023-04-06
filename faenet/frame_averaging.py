@@ -1,6 +1,7 @@
 import random
 from copy import deepcopy
 from itertools import product
+from faenet.utils import RandomRotate
 
 import torch
 
@@ -186,3 +187,25 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
     # No need to update distances, they are preserved.
 
     return fa_pos, fa_cell, fa_rot
+
+def data_augmentation(g, *args):
+    """Data augmentation where we randomly rotate each graph
+    in the dataloader transform
+
+    Args:
+        g (data.Data): single graph
+        rotation (str, optional): around which axis do we rotate it.
+            Defaults to 'z'.
+
+    Returns:
+        (data.Data): rotated graph
+    """
+
+    # Sampling a random rotation within [-180, 180] for all axes.
+    transform = RandomRotate([-180, 180], [2])
+    # transform = RandomRotate([-180, 180], [0, 1, 2])  # 3D
+
+    # Rotate graph
+    graph_rotated, _, _ = transform(g)
+
+    return graph_rotated
