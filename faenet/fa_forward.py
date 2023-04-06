@@ -7,7 +7,7 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
 
     Args:
         batch_list (data.Batch): batch 
-        model (_type_): model instance
+        model: model instance
         frame_averaging (str): (FA) method employed 
             ("2D", "3D", "DA")
         mode (str, optional): model mode. Defaults to "train".
@@ -20,16 +20,16 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
     
     # Distinguish Frame Averaging prediction from traditional case.
     if frame_averaging and frame_averaging != "DA":
-        original_pos = batch_list[0].pos
+        original_pos = batch_list.pos
         if crystal_task: 
-            original_cell = batch_list[0].cell 
+            original_cell = batch_list.cell 
         e_all, f_all, gt_all = [], [], []
 
         # Compute model prediction for each frame
-        for i in range(len(batch_list[0].fa_pos)):
-            batch_list[0].pos = batch_list[0].fa_pos[i]
+        for i in range(len(batch_list.fa_pos)):
+            batch_list.pos = batch_list.fa_pos[i]
             if crystal_task: 
-                batch_list[0].cell = batch_list[0].fa_cell[i]
+                batch_list.cell = batch_list.fa_cell[i]
             # Forward pass
             preds = model(deepcopy(batch_list), mode=mode)
             e_all.append(preds["energy"])
@@ -38,7 +38,7 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
             # Force predictions are rotated back to be equivariant
             if preds.get("forces") is not None:
                 fa_rot = torch.repeat_interleave(
-                    batch_list[0].fa_rot[i], batch_list[0].natoms, dim=0
+                    batch_list.fa_rot[i], batch_list.natoms, dim=0
                 )
                 # Transform forces to guarantee equivariance of FA method
                 g_forces = (
@@ -53,7 +53,7 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
             if preds.get("forces_grad_target") is not None:
                 if fa_rot is None:
                     fa_rot = torch.repeat_interleave(
-                        batch_list[0].fa_rot[i], batch_list[0].natoms, dim=0
+                        batch_list.fa_rot[i], batch_list.natoms, dim=0
                     )
                 # Transform gradients to stay consistent with FA
                 g_grad_target = (
@@ -68,9 +68,9 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
                 )
                 gt_all.append(g_grad_target)
 
-        batch_list[0].pos = original_pos
+        batch_list.pos = original_pos
         if crystal_task:
-            batch_list[0].cell = original_cell
+            batch_list.cell = original_cell
 
         # Average predictions over frames
         preds["energy"] = sum(e_all) / len(e_all)
@@ -81,7 +81,7 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
     
     # Traditional case (no frame averaging)
     else:
-        preds = self.model(batch_list)
+        preds = model(batch_list)
 
     if preds["energy"].shape[-1] == 1:
         preds["energy"] = preds["energy"].view(-1)
