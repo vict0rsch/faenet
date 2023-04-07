@@ -17,7 +17,7 @@
 # TODO
 
 * Functional
-  * [ ] Refactor averaging function (model_forward)
+  * [x] Refactor averaging function (model_forward)
   * [x] Data loader utils / transforms (graph & FA)
   * [ ] EC loss interface
   * [ ] Clean up faenet mp options

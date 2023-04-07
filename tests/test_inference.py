@@ -50,8 +50,6 @@ init_space = {
     "second_layer_MLP": [False, True],
     "skip_co": [False, True],
     "tag_hidden_channels": [0, 8],
-    # "frame_averaging": ["2D", "3D", "DA"],
-    # "fa_frames": ["stochastic", "all", "se3-stochastic"],
 }
 
 
@@ -93,7 +91,7 @@ def test_frame_averaging_3D(kwargs, fa_type, fa_frames):
         batch_list=b,
         model=model,
         frame_averaging=fa_type,
-        mode="inference",
+        mode="train",
         crystal_task=True,
     )
     assert preds is not None
