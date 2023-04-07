@@ -70,9 +70,9 @@ def test_init(kwargs):
 
 
 @pytest.mark.parametrize("kwargs", tu.generate_inits(init_space, defaults))
-@pytest.mark.parametrize("fa_frames", ["stochastic", "all"])
-def test_symmetries(kwargs, fa_frames):
-    fa_type = "2D"
+@pytest.mark.parametrize("fa_frames", ["stochastic", "all", "se3-stochastic"])
+@pytest.mark.parametrize("fa_type", ["2D", "3D", "DA"])
+def test_symmetries(kwargs, fa_frames, fa_type):
     item, kwargs = kwargs
     batch = tu.get_batch()
     model = FAENet(**kwargs)
