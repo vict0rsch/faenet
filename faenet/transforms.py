@@ -22,6 +22,14 @@ class Transform:
 
 
 class FrameAveraging(Transform):
+    r""" Frame Averaging Transform for PyG Data objects
+
+    Args:
+        frame_averaging (str): Transform method used.
+            (`""`, `"2D"`, `"3D"`, `"DA"`)
+        fa_method (str): FA method used.
+            (`""`, "stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
+    """
     def __init__(self, frame_averaging=None, fa_method=None):
         self.fa_method = (
             "stochastic" if (fa_method is None or fa_method == "") else fa_method

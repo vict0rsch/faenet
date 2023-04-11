@@ -13,10 +13,10 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
         mode (str, optional): model mode. Defaults to "train".
             ("train", "inference")
         crystal_task (bool, optional): Whether crystals (or molecules) are considered. 
-            Defaults to True.
+            (default: :obj:`True`)
 
     Returns:
-        dict: model predictions tensor for "energy" and "forces". 
+        (dict): model predictions tensor for "energy" and "forces". 
     """
     
     # Distinguish Frame Averaging prediction from traditional case.

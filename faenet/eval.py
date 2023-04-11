@@ -7,17 +7,17 @@ from torch_geometric.data import Batch
 
 
 def transform_batch(batch, frame_averaging, fa_method, neighbors=None):
-    """Apply a transformation to a batch of graphs
+    r"""Apply a transformation to a batch of graphs
 
     Args:
-        batch (data.Batch): batch of data.Data objects
-        frame_averaging (str): Transform method used
-        fa_method (str): FA method used
+        batch (data.Batch): batch of data.Data objects.
+        frame_averaging (str): Transform method used.
+        fa_method (str): FA method used.
         neighbors (list, optional): list containing the number of edges
-            in each graph of the batch. Defaults to None.
+            in each graph of the batch. (default: :obj:`None`)
 
     Returns:
-        data.Batch: transformed batch element
+        (data.Batch): transformed batch sample
     """
     delattr(batch, "fa_pos")  # delete it otherwise can't iterate
     delattr(batch, "fa_cell")  # delete it otherwise can't iterate
@@ -37,19 +37,19 @@ def transform_batch(batch, frame_averaging, fa_method, neighbors=None):
 
 
 def rotate_graph(batch, frame_averaging, fa_method, rotation=None):
-    """Rotate all graphs in a batch
+    r"""Rotate all graphs in a batch
 
     Args:
-        batch (data.Batch): batch of graphs
-        frame_averaging (str): Transform method used
+        batch (data.Batch): batch of graphs.
+        frame_averaging (str): Transform method used.
             ("2D", "3D", "DA")
-        fa_method (str): FA method used
+        fa_method (str): FA method used.
             ("stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
-        rotation (str, optional): type of rotation applied. Defaults to None.
+        rotation (str, optional): type of rotation applied. (default: :obj:`None`)
             ("z", "x", "y", None)
 
     Returns:
-        dict: rotated batch sample and rotation matrix used to rotate it
+        (dict): rotated batch sample and rotation matrix used to rotate it
     """
     if isinstance(batch, list):
         batch = batch[0]
@@ -81,7 +81,7 @@ def rotate_graph(batch, frame_averaging, fa_method, rotation=None):
 
 
 def reflect_graph(batch, frame_averaging, fa_method, reflection=None):
-    """Rotate all graphs in a batch
+    r"""Rotate all graphs in a batch
 
     Args:
         batch (data.Batch): batch of graphs
@@ -89,10 +89,10 @@ def reflect_graph(batch, frame_averaging, fa_method, reflection=None):
             ("2D", "3D", "DA")
         fa_method (str): FA method used
             ("stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
-        reflection (str, optional): type of reflection applied. Defaults to None.
+        reflection (str, optional): type of reflection applied. (default: :obj:`None`)
 
     Returns:
-        dict: reflected batch sample and rotation matrix used to reflect it
+        (dict): reflected batch sample and rotation matrix used to reflect it
     """
     if isinstance(batch, list):
         batch = batch[0]

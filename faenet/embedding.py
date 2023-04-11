@@ -11,13 +11,13 @@ class PhysEmbedding(nn.Module):
 
         Args:
             props (bool, optional): Create an embedding of physical
-                properties. Default to True.
+                properties. (default: :obj:`True`)
             props_grad (bool, optional): Learn a physics-aware embedding
-                instead of keeping it fixed. Default to False.
+                instead of keeping it fixed. (default: :obj:`False`)
             pg (bool, optional): Learn two embeddings based on period and
-                group information respectively. Default to False.
+                group information respectively. (default: :obj:`False`)
             short (bool, optional): Remove all columns containing NaN values.
-                Defaults to False.
+                (default: :obj:`False`)
         """
         super().__init__()
 

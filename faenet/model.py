@@ -17,6 +17,7 @@ from faenet.utils import get_pbc_distances, GaussianSmearing, swish
 
 
 class EmbeddingBlock(nn.Module):
+    """ Embedding block for the GNN"""
     def __init__(
         self,
         num_gaussians,
@@ -149,6 +150,7 @@ class EmbeddingBlock(nn.Module):
 
 
 class InteractionBlock(MessagePassing):
+    """ Interaction block for the GNN """
     def __init__(
         self,
         hidden_channels,
@@ -267,6 +269,7 @@ class InteractionBlock(MessagePassing):
 
 
 class OutputBlock(nn.Module):
+    """ Output block for the GNN """
     def __init__(self, energy_head, hidden_channels, act):
         super().__init__()
         self.energy_head = energy_head
@@ -340,20 +343,20 @@ class FAENet(BaseModel):
         second_layer_MLP (bool): Use 2-layers MLP at the end of the Embedding block.
             (default: :obj:`False`)
         skip_co (str): Add a skip connection between each interaction block and
-            energy-head. (False, "add", "concat", "concat_atom")
+            energy-head. (`False`, `"add"`, `"concat"`, `"concat_atom"`)
         mp_type (str): Specificies the Message Passing type of the interaction block.
-            ("base", "updownscale_base", "updownscale", "updown_local_env", "simple"):
+            (`"base"`, `"updownscale_base"`, `"updownscale"`, `"updown_local_env"`, `"simple"`):
         graph_norm (bool): Whether to apply batch norm after every linear layer.
             (default: :obj:`True`)
         complex_mp (bool); Whether to add a second layer MLP at the end of each Interaction
             (default: :obj:`True`)
         energy_head (str): Method to compute energy prediction
             from atom representations.
-            (None, "weighted-av-initial-embeds", "weighted-av-final-embeds")
+            (`None`, `"weighted-av-initial-embeds"`, `"weighted-av-final-embeds"`)
         regress_forces (str): Specifies if we predict forces or not, and how
-            do we predict them. ("", "direct", "direct_with_gradient_target", False or None)
+            do we predict them. (`None` or `""`, `"direct"`, `"direct_with_gradient_target"`)
         force_decoder_type (str): Specifies the type of force decoder
-            ("simple", "mlp", "res", "res_updown")
+            (`"simple"`, `"mlp"`, `"res"`, `"res_updown"`)
         force_decoder_model_config (dict): contains information about the
             for decoder architecture (e.g. number of layers, hidden size).
     """
@@ -378,9 +381,9 @@ class FAENet(BaseModel):
         second_layer_MLP: bool = True,
         skip_co: str = "concat",
         energy_head: Optional[str] = None,
-        regress_forces: bool = False,
+        regress_forces: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
-        force_decoder_model_config: Optional[Dict] = {"hidden_channels": 128},
+        force_decoder_model_config: Optional[dict] = {"hidden_channels": 128},
     ):
         super(FAENet, self).__init__()
 
