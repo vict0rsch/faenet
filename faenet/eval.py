@@ -6,22 +6,50 @@ from faenet import FrameAveraging
 from torch_geometric.data import Batch
 
 
-def transform_batch(g_list, fa_transform, neighbors=None):
+def transform_batch(batch, frame_averaging, fa_method, neighbors=None):
+    """Apply a transformation to a batch of graphs
+
+    Args:
+        batch (data.Batch): batch of data.Data objects
+        frame_averaging (str): Transform method used
+        fa_method (str): FA method used
+        neighbors (list, optional): list containing the number of edges
+            in each graph of the batch. Defaults to None.
+
+    Returns:
+        data.Batch: transformed batch element
+    """
+    delattr(batch, "fa_pos")  # delete it otherwise can't iterate
+    delattr(batch, "fa_cell")  # delete it otherwise can't iterate
+    delattr(batch, "fa_rot")  # delete it otherwise can't iterate
+
+    # Convert batch to list of graphs
+    g_list = batch.to_data_list()
+
+    # Apply transform to individual graphs of batch
+    fa_transform = FrameAveraging(frame_averaging, fa_method)
     for g in g_list:
         g = fa_transform(g)
-    batch_rotated = Batch.from_data_list(g_list)
+    batch = Batch.from_data_list(g_list)
     if neighbors is not None:
-        batch_rotated.neighbors = neighbors
-    return batch_rotated
+        batch.neighbors = neighbors
+    return batch
 
 
-def rotate_graph(batch, fa, fa_frames, rotation=None):
+def rotate_graph(batch, frame_averaging, fa_method, rotation=None):
     """Rotate all graphs in a batch
+
     Args:
         batch (data.Batch): batch of graphs
+        frame_averaging (str): Transform method used
+            ("2D", "3D", "DA")
+        fa_method (str): FA method used
+            ("stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
         rotation (str, optional): type of rotation applied. Defaults to None.
+            ("z", "x", "y", None)
+
     Returns:
-        data.Batch: rotated batch
+        dict: rotated batch sample and rotation matrix used to rotate it
     """
     if isinstance(batch, list):
         batch = batch[0]
@@ -42,29 +70,29 @@ def rotate_graph(batch, fa, fa_frames, rotation=None):
 
     # Recompute fa-pos for batch_rotated
     if hasattr(batch, "fa_pos"):
-        delattr(batch_rotated, "fa_pos")  # delete it otherwise can't iterate
-        delattr(batch_rotated, "fa_cell")  # delete it otherwise can't iterate
-        delattr(batch_rotated, "fa_rot")  # delete it otherwise can't iterate
-
-        g_list = batch_rotated.to_data_list()
-        fa_transform = FrameAveraging(fa, fa_frames)
-
         batch_rotated = transform_batch(
-            g_list,
-            fa_transform,
+            batch_rotated,
+            frame_averaging,
+            fa_method,
             batch.neighbors if hasattr(batch, "neighbors") else None,
         )
 
-        return {"batch_list": batch_rotated, "rot": rot}
+    return {"batch_list": batch_rotated, "rot": rot}
 
 
-def reflect_graph(batch, frame_averaging, fa_frames, reflection=None):
+def reflect_graph(batch, frame_averaging, fa_method, reflection=None):
     """Rotate all graphs in a batch
+
     Args:
         batch (data.Batch): batch of graphs
-        rotation (str, optional): type of rotation applied. Defaults to None.
+        frame_averaging (str): Transform method used
+            ("2D", "3D", "DA")
+        fa_method (str): FA method used
+            ("stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
+        reflection (str, optional): type of reflection applied. Defaults to None.
+
     Returns:
-        data.Batch: rotated batch
+        dict: reflected batch sample and rotation matrix used to reflect it
     """
     if isinstance(batch, list):
         batch = batch[0]
@@ -76,42 +104,35 @@ def reflect_graph(batch, frame_averaging, fa_frames, reflection=None):
     batch_reflected, rot, inv_rot = transform(deepcopy(batch))
     assert not torch.allclose(batch.pos, batch_reflected.pos, atol=1e-05)
 
-    # Recompute fa-pos for batch_rotated
     if hasattr(batch, "fa_pos"):
-        delattr(batch_reflected, "fa_pos")  # delete it otherwise can't iterate
-        delattr(batch_reflected, "fa_cell")  # delete it otherwise can't iterate
-        delattr(batch_reflected, "fa_rot")  # delete it otherwise can't iterate
-        g_list = batch_reflected.to_data_list()
-        fa_transform = FrameAveraging(frame_averaging, fa_frames)
-
         batch_reflected = transform_batch(
-            g_list,
-            fa_transform,
+            batch_reflected,
+            frame_averaging,
+            fa_method,
             batch.neighbors if hasattr(batch, "neighbors") else None,
         )
-
     return {"batch_list": batch_reflected, "rot": rot}
 
 
 @torch.no_grad()
 def eval_model_symmetries(
-    loader, model, fa, fa_frames, device, task_name, crystal_task=True
+    loader, model, frame_averaging, fa_method, device, task_name, crystal_task=True
 ):
     """Test rotation and reflection invariance & equivariance of GNNs
 
     Args:
         loader (data): dataloader
         model: model instance
-        fa (str): frame averaging ("2D", "3D") or data augmentation ("DA")
-        fa_frames (str): _description_
+        frame_averaging (str): frame averaging ("2D", "3D") or data augmentation ("DA")
+        fa_method (str): _description_
         task_name (str): the targeted task
             ("energy", "forces")
         crystal_task (bool): whether we have a crystal (i.e. a unit cell)
             or a molecule
 
     Returns:
-        (dict): dict of metrics to measure RI difference in
-            energy/force pred. or pos. between G and rotated G
+        (dict): metrics measuring invariance/equivariance
+            of energy/force predictions
     """
     model.eval()
 
@@ -124,7 +145,7 @@ def eval_model_symmetries(
     forces_diff_refl = torch.zeros(1, device=device)
     n_batches = 0
     n_atoms = 0
-    rotation = "z" if fa == "2D" else None
+    rotation = "z" if frame_averaging == "2D" else None
 
     for batch in loader:
         n_batches += len(batch.natoms)
@@ -132,15 +153,19 @@ def eval_model_symmetries(
 
         # Compute model prediction
         preds1 = model_forward(
-            deepcopy(batch), model, fa, mode="inference", crystal_task=crystal_task
+            deepcopy(batch),
+            model,
+            frame_averaging,
+            mode="inference",
+            crystal_task=crystal_task,
         )
 
         # Compute prediction on rotated graph
-        rotated = rotate_graph(batch, fa, fa_frames, rotation=rotation)
+        rotated = rotate_graph(batch, frame_averaging, fa_method, rotation=rotation)
         preds2 = model_forward(
             deepcopy(rotated["batch_list"]),
             model,
-            fa,
+            frame_averaging,
             mode="inference",
             crystal_task=crystal_task,
         )
@@ -184,11 +209,11 @@ def eval_model_symmetries(
             pos_diff_total += torch.abs(pos_diff).sum()
 
         # Reflect graph and compute diff in prediction
-        reflected = reflect_graph(batch, fa, fa_frames)
+        reflected = reflect_graph(batch, frame_averaging, fa_method)
         preds3 = model_forward(
             deepcopy(reflected["batch_list"]),
             model,
-            fa,
+            frame_averaging,
             mode="inference",
             crystal_task=crystal_task,
         )

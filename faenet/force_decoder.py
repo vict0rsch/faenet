@@ -17,7 +17,9 @@ class ForceDecoder(nn.Module):
 
         Args:
             type (str): Type of force decoder to use
-            model_config (dict): Dictionary of config parameters for the decoder's model
+            input_channels (int): Number of input channels
+            model_configs (dict): Dictionary of config parameters for the
+                decoder's model
             act (callable): Activation function (NOT a module)
 
         Raises:
@@ -36,6 +38,7 @@ class ForceDecoder(nn.Module):
             self.norm = lambda n: nn.Identity()
         else:
             raise ValueError(f"Unknown norm type: {self.model_config['norm']}")
+        # Define the different force decoder models
         if self.type == "simple":
             assert "hidden_channels" in self.model_config
             self.model = nn.Sequential(

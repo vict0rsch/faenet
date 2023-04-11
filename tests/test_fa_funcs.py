@@ -8,21 +8,21 @@ from copy import deepcopy
 import math
 import random
 
-fa_type_list = ["all", "stochastic", "det", "se3-all", "se3-stochastic", "se3-det"]
+fa_method_list = ["all", "stochastic", "det", "se3-all", "se3-stochastic", "se3-det"]
 
-@pytest.mark.parametrize("fa_type", fa_type_list)
-def test_frame_averaging_3D(fa_type):
+@pytest.mark.parametrize("fa_method", fa_method_list)
+def test_frame_averaging_3D(fa_method):
     batch = tu.get_batch()
     for i in range(len(batch.sid)):
         g = Batch.get_example(batch, i)
-        pos, cell, rot = frame_averaging_3D(g.pos, g.cell, fa_method=fa_type)
+        pos, cell, rot = frame_averaging_3D(g.pos, g.cell, fa_method=fa_method)
         assert (pos[0] != g.pos).any().item() # Check that positions have changed
         assert (cell[0] != g.cell).any().item() # Check that cell has changed
 
         # Check correct dimensions are returned for all FA methods
-        if fa_type == "all":
+        if fa_method == "all":
             assert len(pos) == len(rot) == len(cell) == 8
-        elif fa_type == "se3-all":
+        elif fa_method == "se3-all":
             assert len(pos) == len(rot) == len(cell) == 4
         else: 
             assert len(pos) == len(cell) == len(rot) == 1
@@ -30,19 +30,19 @@ def test_frame_averaging_3D(fa_type):
         assert cell[0].shape == (1, 3, 3)
         assert rot[0].shape == (1, 3, 3)
 
-@pytest.mark.parametrize("fa_type", fa_type_list)
-def test_frame_averaging_2D(fa_type):
+@pytest.mark.parametrize("fa_method", fa_method_list)
+def test_frame_averaging_2D(fa_method):
     batch = tu.get_batch()
     for i in range(len(batch.sid)):
         g = Batch.get_example(batch, i)
-        pos, cell, rot = frame_averaging_2D(g.pos, g.cell, fa_method=fa_type)
+        pos, cell, rot = frame_averaging_2D(g.pos, g.cell, fa_method=fa_method)
         assert (pos[0] != g.pos).any().item() # Check that positions have changed
         assert (cell[0] != g.cell).any().item() # Check that cell has changed
 
         # Check correct dimensions are returned for all FA methods
-        if fa_type == "all":
+        if fa_method == "all":
             assert len(pos) == len(rot) == len(cell) == 4
-        elif fa_type == "se3-all":
+        elif fa_method == "se3-all":
             assert len(pos) == len(rot) == len(cell) == 2
         else: 
             assert len(pos) == len(cell) == len(rot) == 1

@@ -70,13 +70,13 @@ def test_init(kwargs):
 
 
 @pytest.mark.parametrize("kwargs", tu.generate_inits(init_space, defaults))
-@pytest.mark.parametrize("fa_type", ["2D", "3D", "DA"])
-@pytest.mark.parametrize("fa_frames", ["stochastic", "all"])
-def test_frame_averaging_3D(kwargs, fa_type, fa_frames):
+@pytest.mark.parametrize("frame_averaging", ["2D", "3D", "DA"])
+@pytest.mark.parametrize("fa_method", ["stochastic", "all"])
+def test_frame_averaging_3D(kwargs, frame_averaging, fa_method):
     item, kwargs = kwargs
     batch = tu.get_batch()
     model = FAENet(**kwargs)
-    transform = FrameAveraging(fa_type, fa_frames)
+    transform = FrameAveraging(frame_averaging, fa_method)
     neighbors = batch.neighbors
     # Transform batch manually here instead of using dataloader
     b = Batch.to_data_list(batch)
@@ -90,7 +90,7 @@ def test_frame_averaging_3D(kwargs, fa_type, fa_frames):
     preds = model_forward(
         batch_list=b,
         model=model,
-        frame_averaging=fa_type,
+        frame_averaging=frame_averaging,
         mode="train",
         crystal_task=True,
     )

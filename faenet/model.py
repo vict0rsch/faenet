@@ -315,20 +315,20 @@ class FAENet(BaseModel):
         cutoff (float): Cutoff distance for interatomic interactions.
             (default: :obj:`6.0`)
         use_pbc (bool): Use of periodic boundary conditions.
-            (default: true)
+            (default: `True`)
         act (str): Activation function
-            (default: swish)
+            (default: `swish`)
         max_num_neighbors (int): The maximum number of neighbors to
             collect for each node within the :attr:`cutoff` distance.
-            (default: ``40``)
+            (default: `40`)
         hidden_channels (int): Hidden embedding size.
-            (default: ``128``)
+            (default: `128`)
         tag_hidden_channels (int): Hidden tag embedding size.
             (default: :obj:`32`)
         pg_hidden_channels (int): Hidden period and group embedding size.
             (default: :obj:`32`)
         phys_embeds (bool): Do we include fixed physics-aware embeddings.
-            (default: :obj: true)
+            (default: :obj: `True`)
         phys_hidden_channels (int): Hidden size of learnable physics-aware embeddings.
             (default: :obj:`0`)
         num_interactions (int): The number of interaction (i.e. message passing) blocks.
@@ -360,27 +360,27 @@ class FAENet(BaseModel):
 
     def __init__(
         self,
-        act: str = "swish",
-        complex_mp: bool = False,
         cutoff: float = 6.0,
-        energy_head: Optional[str] = None,
-        force_decoder_type: Optional[str] = "mlp",
-        force_decoder_model_config: Optional[Dict] = {"hidden_channels": 128},
-        graph_norm: bool = True,
-        hidden_channels: int = 128,
+        act: str = "swish",
+        use_pbc: bool = True,
+        complex_mp: bool = False,
         max_num_neighbors: int = 40,
-        mp_type: str = "updownscale_base",
-        num_filters: int = 128,
         num_gaussians: int = 50,
-        num_interactions: int = 4,
+        num_filters: int = 128,
+        hidden_channels: int = 128,
+        tag_hidden_channels: int = 32,
         pg_hidden_channels: int = 32,
-        phys_embeds: bool = True,
         phys_hidden_channels: int = 0,
-        regress_forces: bool = False,
+        phys_embeds: bool = True,
+        num_interactions: int = 4,
+        mp_type: str = "updownscale_base",
+        graph_norm: bool = True,
         second_layer_MLP: bool = True,
         skip_co: str = "concat",
-        tag_hidden_channels: int = 32,
-        use_pbc: bool = True,
+        energy_head: Optional[str] = None,
+        regress_forces: bool = False,
+        force_decoder_type: Optional[str] = "mlp",
+        force_decoder_model_config: Optional[Dict] = {"hidden_channels": 128},
     ):
         super(FAENet, self).__init__()
 

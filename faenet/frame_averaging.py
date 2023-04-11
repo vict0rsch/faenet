@@ -18,10 +18,10 @@ def compute_frames(
         fa_method (str): the Frame Averaging (FA) inspired technique
             chosen to select frames: stochastic-FA (stochastic), deterministic-FA (det),
             Full-FA (all) or SE(3)-FA (se3).
-        pos_3D: 3rd position coordinate of atoms, for 2D FA.
+        pos_3D: for 2D FA, pass atoms' 3rd position coordinate. 
 
     Returns:
-        tensor: lists of 3D positions tensors
+        list: 3D position tensors of projected representation
     """
     dim = pos.shape[1]  # to differentiate between 2D or 3D case
     plus_minus_list = list(product([1, -1], repeat=dim))
@@ -29,7 +29,7 @@ def compute_frames(
     all_fa_pos = []
     all_cell = []
     all_rots = []
-    assert fa_method in {"all", "stochastic", "det", "se3-all", "se3-stochastic","se3-det"}
+    assert fa_method in {"all", "stochastic", "det", "se3-all", "se3-stochastic", "se3-det"}
     se3 = fa_method in {
         "se3-all",
         "se3-stochastic",

@@ -70,13 +70,13 @@ def test_init(kwargs):
 
 
 @pytest.mark.parametrize("kwargs", tu.generate_inits(init_space, defaults))
-@pytest.mark.parametrize("fa_frames", ["stochastic", "all", "se3-stochastic"])
-@pytest.mark.parametrize("fa_type", ["2D", "3D", "DA"])
-def test_symmetries(kwargs, fa_frames, fa_type):
+@pytest.mark.parametrize("fa_method", ["stochastic", "all", "se3-stochastic"])
+@pytest.mark.parametrize("frame_averaging", ["2D", "3D", "DA"])
+def test_symmetries(kwargs, fa_method, frame_averaging):
     item, kwargs = kwargs
     batch = tu.get_batch()
     model = FAENet(**kwargs)
-    transform = FrameAveraging(fa_type, fa_frames)
+    transform = FrameAveraging(frame_averaging, fa_method)
     neighbors = batch.neighbors
 
     # Transform batch manually here instead of using dataloader
@@ -91,8 +91,8 @@ def test_symmetries(kwargs, fa_frames, fa_type):
     metrics = eval_model_symmetries(
         loader=[b],
         model=model,
-        fa=fa_type,
-        fa_frames=fa_frames,
+        frame_averaging=frame_averaging,
+        fa_method=fa_method,
         device=b.pos.device,
         task_name="energy",
         crystal_task=True,

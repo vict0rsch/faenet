@@ -7,7 +7,7 @@ from mendeleev.fetch import fetch_ionization_energies, fetch_table
 class PhysEmbedding(nn.Module):
     def __init__(self, props=True, props_grad=False, pg=False, short=False) -> None:
         """
-        Create physical embeddings meta class with sub-emeddings for each atom
+        Create physics-aware embeddings meta class with sub-emeddings for each atom
 
         Args:
             props (bool, optional): Create an embedding of physical

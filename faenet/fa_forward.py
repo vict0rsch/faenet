@@ -6,16 +6,17 @@ def model_forward(batch_list, model, frame_averaging, mode="train", crystal_task
     """ Perform a forward pass of the model when frame averaging is applied. 
 
     Args:
-        batch_list (data.Batch): batch 
+        batch_list (data.Batch): batch of graphs
         model: model instance
         frame_averaging (str): (FA) method employed 
             ("2D", "3D", "DA")
         mode (str, optional): model mode. Defaults to "train".
-        crystal_task (bool, optional): Whether crystals are considered. 
+            ("train", "inference")
+        crystal_task (bool, optional): Whether crystals (or molecules) are considered. 
             Defaults to True.
 
     Returns:
-        dict: model predictions with entries "energy" and "forces"
+        dict: model predictions tensor for "energy" and "forces". 
     """
     
     # Distinguish Frame Averaging prediction from traditional case.
