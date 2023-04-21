@@ -79,7 +79,7 @@ def test_symmetries(kwargs, fa_method, frame_averaging):
     transform = FrameAveraging(frame_averaging, fa_method)
     neighbors = batch.neighbors
 
-    # Transform batch manually here instead of using dataloader
+    # Transform batch manually here instead of using Dataloader
     b = Batch.to_data_list(batch)
     for g in b:
         transform(g)

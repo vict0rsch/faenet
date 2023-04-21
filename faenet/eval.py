@@ -77,7 +77,7 @@ def rotate_graph(batch, frame_averaging, fa_method, rotation=None):
             batch.neighbors if hasattr(batch, "neighbors") else None,
         )
 
-    return {"batch_list": batch_rotated, "rot": rot}
+    return {"batch": batch_rotated, "rot": rot}
 
 
 def reflect_graph(batch, frame_averaging, fa_method, reflection=None):
@@ -111,7 +111,7 @@ def reflect_graph(batch, frame_averaging, fa_method, reflection=None):
             fa_method,
             batch.neighbors if hasattr(batch, "neighbors") else None,
         )
-    return {"batch_list": batch_reflected, "rot": rot}
+    return {"batch": batch_reflected, "rot": rot}
 
 
 @torch.no_grad()
@@ -163,7 +163,7 @@ def eval_model_symmetries(
         # Compute prediction on rotated graph
         rotated = rotate_graph(batch, frame_averaging, fa_method, rotation=rotation)
         preds2 = model_forward(
-            deepcopy(rotated["batch_list"]),
+            deepcopy(rotated["batch"]),
             model,
             frame_averaging,
             mode="inference",
@@ -184,7 +184,7 @@ def eval_model_symmetries(
             assert torch.allclose(
                 torch.abs(
                     batch.force @ rotated["rot"].to(batch.force.device)
-                    - rotated["batch_list"].force
+                    - rotated["batch"].force
                 ).sum(),
                 torch.tensor([0.0]),
                 atol=1e-05,
@@ -204,14 +204,14 @@ def eval_model_symmetries(
         pos_diff = -1
         if hasattr(batch, "fa_pos"):
             pos_diff = 0
-            for pos1, pos2 in zip(batch.fa_pos, rotated["batch_list"].fa_pos):
+            for pos1, pos2 in zip(batch.fa_pos, rotated["batch"].fa_pos):
                 pos_diff += pos1 - pos2
             pos_diff_total += torch.abs(pos_diff).sum()
 
         # Reflect graph and compute diff in prediction
         reflected = reflect_graph(batch, frame_averaging, fa_method)
         preds3 = model_forward(
-            deepcopy(reflected["batch_list"]),
+            deepcopy(reflected["batch"]),
             model,
             frame_averaging,
             mode="inference",

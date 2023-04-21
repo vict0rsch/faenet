@@ -88,7 +88,7 @@ def test_frame_averaging_3D(kwargs, frame_averaging, fa_method):
         b.neighbors = neighbors
     # Model predictions using fa_forward
     preds = model_forward(
-        batch_list=b,
+        batch=b,
         model=model,
         frame_averaging=frame_averaging,
         mode="train",

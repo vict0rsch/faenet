@@ -3,7 +3,7 @@
 default:
   mode: train 
   frame_averaging: 3D
-  fa_frames: random
+  fa_method: stochastic
   dataset:
     train:
       lse_shift: true
