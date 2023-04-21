@@ -101,3 +101,8 @@ pytest --cov=faenet --cov-report term-missing
 ```
 
 Testing on Macs you may encounter a [Library Not Loaded Error](https://github.com/pyg-team/pytorch_geometric/issues/6530)
+
+### Contact
+
+Authors: Alexandre Duval (alexandre.duval@mila.quebec) and Victor Schmidt (schmidtv@mila.quebec). We welcome your questions and feedback via email or GitHub Issues.
+
