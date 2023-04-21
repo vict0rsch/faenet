@@ -1,8 +1,8 @@
 # ---- DATASET: QM7-X ----
 
 default:
-  frame_averaging: 3D
-  fa_method: stochastic
+  frame_averaging: 3D  # {"2D", "3D", "DA", ""}
+  fa_method: stochastic  # {"", all, stochastic, det, se3-all, se3-stochastic, se3-det}
   model:
     act: swish
     max_num_neighbors: 40

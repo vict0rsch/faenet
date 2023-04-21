@@ -4,8 +4,8 @@ from torch_geometric.data import Batch
 import pytest
 import torch
 
-@pytest.mark.parametrize("frame_averaging", ["2D", "3D", "DA"])
-@pytest.mark.parametrize("fa_method", ["stochastic", "det", "all", "se3-stochastic", "se3-det", "se3-all"])
+@pytest.mark.parametrize("frame_averaging", ["2D", "3D", "DA", ""])
+@pytest.mark.parametrize("fa_method", ["stochastic", "det", "all", "se3-stochastic", "se3-det", "se3-all", ""])
 def test_transform(frame_averaging, fa_method):
     batch = tu.get_batch()
     transform = FrameAveraging(frame_averaging, fa_method)

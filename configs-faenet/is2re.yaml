@@ -5,8 +5,8 @@
 #   If the global batch size (num_gpus * batch_size) is modified
 #   the lr_milestones and warmup_steps need to be adjusted accordingly.
 default:
-  frame_averaging: 2D # {2D, 3D, DA, False}
-  fa_method: se3-stochastic # {None, all, stochastic, det, se3-all, se3-stochastic, se3-det}
+  frame_averaging: 2D # {"2D", "3D", "DA", ""}
+  fa_method: se3-stochastic # {"", all, stochastic, det, se3-all, se3-stochastic, se3-det}
   model:
     name: faenet
     act: swish

@@ -70,8 +70,8 @@ def test_init(kwargs):
 
 
 @pytest.mark.parametrize("kwargs", tu.generate_inits(init_space, defaults))
-@pytest.mark.parametrize("frame_averaging", ["2D", "3D", "DA"])
-@pytest.mark.parametrize("fa_method", ["stochastic", "all"])
+@pytest.mark.parametrize("frame_averaging", ["2D", "3D", "DA", ""])
+@pytest.mark.parametrize("fa_method", ["stochastic", "all", ""])
 def test_frame_averaging_3D(kwargs, frame_averaging, fa_method):
     item, kwargs = kwargs
     batch = tu.get_batch()

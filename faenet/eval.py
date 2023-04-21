@@ -1,6 +1,6 @@
 import torch
 from copy import deepcopy
-from faenet.fa_forward import model_forward
+from faenet import model_forward
 from faenet.utils import RandomRotate, RandomReflect
 from faenet import FrameAveraging
 from torch_geometric.data import Batch
@@ -42,9 +42,9 @@ def rotate_graph(batch, frame_averaging, fa_method, rotation=None):
     Args:
         batch (data.Batch): batch of graphs.
         frame_averaging (str): Transform method used.
-            ("2D", "3D", "DA")
+            ("2D", "3D", "DA", "")
         fa_method (str): FA method used.
-            ("stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
+            ("", "stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
         rotation (str, optional): type of rotation applied. (default: :obj:`None`)
             ("z", "x", "y", None)
 
@@ -86,9 +86,9 @@ def reflect_graph(batch, frame_averaging, fa_method, reflection=None):
     Args:
         batch (data.Batch): batch of graphs
         frame_averaging (str): Transform method used
-            ("2D", "3D", "DA")
+            ("2D", "3D", "DA", "")
         fa_method (str): FA method used
-            ("stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
+            ("", "stochastic", "all", "det", "se3-stochastic", "se3-all", "se3-det")
         reflection (str, optional): type of reflection applied. (default: :obj:`None`)
 
     Returns:
@@ -123,7 +123,8 @@ def eval_model_symmetries(
     Args:
         loader (data): dataloader
         model: model instance
-        frame_averaging (str): frame averaging ("2D", "3D") or data augmentation ("DA")
+        frame_averaging (str): frame averaging ("2D", "3D"), data augmentation ("DA")
+            or none ("")
         fa_method (str): _description_
         task_name (str): the targeted task
             ("energy", "forces")

@@ -8,8 +8,8 @@ def model_forward(batch, model, frame_averaging, mode="train", crystal_task=True
     Args:
         batch (data.Batch): batch of graphs
         model: model instance
-        frame_averaging (str): (FA) method employed 
-            ("2D", "3D", "DA")
+        frame_averaging (str): symmetry preserving method employed 
+            ("2D", "3D", "DA", "")
         mode (str, optional): model mode. Defaults to "train".
             ("train", "inference")
         crystal_task (bool, optional): Whether crystals (or molecules) are considered. 
