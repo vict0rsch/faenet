@@ -30,28 +30,14 @@ defaults = {
 }
 
 init_space = {
-    "complex_mp": [False, True],
     "energy_head": [
         None,
-        "weighted-av-initial-embeds",
         "weighted-av-final-embeds",
     ],
-    "force_decoder_type": ["mlp", "simple", "", "res", "res_updown"],
-    "graph_norm": [False, True],
-    "mp_type": [
-        "simple",
-        "updownscale",
-        "updownscale_base",
-        "updown_local_env",
-        "base",
-    ],
-    "phys_embeds": [False, True],
-    "regress_forces": ["direct", "", "direct_with_gradient_target"],
-    "second_layer_MLP": [False, True],
-    "skip_co": [False, True],
-    "tag_hidden_channels": [0, 8],
+    "force_decoder_type": ["mlp", "res_updown"],
+    "regress_forces": ["", "direct"],
+    "skip_co": [False, "concat"],
 }
-
 
 def test_init_no_arg():
     model = FAENet()

@@ -84,7 +84,7 @@ def model_forward(batch, model, frame_averaging, mode="train", crystal_task=True
     
     # Traditional case (no frame averaging)
     else:
-        preds = model(batch)
+        preds = model(batch, mode=mode)
 
     if preds["energy"].shape[-1] == 1:
         preds["energy"] = preds["energy"].view(-1)
