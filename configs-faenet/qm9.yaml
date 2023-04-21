@@ -29,7 +29,7 @@ default:
     phys_hidden_channels: 0
     regress_forces: ""
     second_layer_MLP: true
-    skip_co: true
+    skip_co: False
     tag_hidden_channels: 0
   optim:
     warmup_steps: 3000
