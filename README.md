@@ -43,7 +43,7 @@ pip install faenet
 
 ### Frame Averaging Transform
 
-`FrameAveraging` is a Transform method applicable to pytorch-geometric `Data` object. You can choose among several options ranging from *Full FA* to *Stochastic FA* (in 2D or 3D) including data augmentation *DA*. This method shall be applied in the `get_item()` function of your `Dataset` class. Note that although this transform is specific to pytorch-geometric data objects, it can be easily extended to new settings since the core functions `frame_averaging_2D` and `frame_averaging_3D` generalise to other data format. 
+`FrameAveraging` is a Transform method applicable to pytorch-geometric `Data` object. You can choose among several options ranging from *Full FA* to *Stochastic FA* (in 2D or 3D) including data augmentation *DA*. This method shall be applied in the `get_item()` function of your `Dataset` class. Note that although this transform is specific to pytorch-geometric data objects, it can be easily extended to new settings since the core functions `frame_averaging_2D()` and `frame_averaging_3D()` generalise to other data format. 
 
 ```python
 import torch
@@ -57,7 +57,7 @@ transform(g)  # transform the PyG graph g
 
 ### Model forward for Frame Averaging
 
-`model_forward` aggregates model predictions when Frame Averaging is applied, as stipulated by the Equation (1) of the paper. It must be applied. 
+`model_forward()` aggregates model predictions when Frame Averaging is applied, as stipulated by the Equation (1) of the paper. It must be applied. 
 
 ```python
 from faenet.fa_forward import model_forward
@@ -75,7 +75,7 @@ preds = model_forward(
 
 Implementation of the FAENet GNN model, compatible with any dataset or transform. In short, FAENet is a very simple, scalable and expressive model. Since does not explicitly preserve data symmetries, it has the ability to process directly and unrestrictedly atom relative positions, which is very efficient. Note that the training procedure is not given here. 
 
-![FAENet architecture](https://raw.githubusercontent.com/vict0rsch/phast/main/examples/data/faenet-archi.pdf)
+![FAENet architecture](https://raw.githubusercontent.com/vict0rsch/faenet/main/examples/data/faenet-archi.pdf)
 
 ```python
 from faenet.model import FAENet
@@ -86,11 +86,11 @@ model(batch)
 
 ### Eval 
 
-The `eval_model_symmetries` function helps you evaluate the equivariant, invariant and other properties of a model, as we did in the paper. 
+The `eval_model_symmetries()` function helps you evaluate the equivariant, invariant and other properties of a model, as we did in the paper. 
 
 ### Tests
 
-The `tests` folder contains several useful unit-tests. Feel free to have a look at them to explore how the model can be used. For more advanced examples, please refer to the full [repository](https://github.com/RolnickLab/ocp) used in our ICML paper to make predictions on OC20 IS2RE, S2EF, QM9 and QM7-X dataset. 
+The `/tests` folder contains several useful unit-tests. Feel free to have a look at them to explore how the model can be used. For more advanced examples, please refer to the full [repository](https://github.com/RolnickLab/ocp) used in our ICML paper to make predictions on OC20 IS2RE, S2EF, QM9 and QM7-X dataset. 
 
 This requires [`poetry`](https://python-poetry.org/docs/). Make sure to have `torch` and `torch_geometric` installed in your environment before you can run the tests. Unfortunately because of CUDA/torch compatibilities, neither `torch` nor `torch_geometric` are part of the explicit dependencies and must be installed independently.
 
