@@ -75,7 +75,7 @@ preds = model_forward(
 
 Implementation of the FAENet GNN model, compatible with any dataset or transform. In short, FAENet is a very simple, scalable and expressive model. Since does not explicitly preserve data symmetries, it has the ability to process directly and unrestrictedly atom relative positions, which is very efficient. Note that the training procedure is not given here. 
 
-![FAENet architecture](https://raw.githubusercontent.com/vict0rsch/faenet/main/examples/data/faenet-archi.png)
+![FAENet architecture](examples/data/faenet-archi.png)
 
 ```python
 from faenet.model import FAENet
