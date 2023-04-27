@@ -17,6 +17,7 @@ from faenet.utils import get_pbc_distances, GaussianSmearing, swish
 
 
 class EmbeddingBlock(nn.Module):
+    """ Embedding block for the GNN"""
     def __init__(
         self,
         num_gaussians,
@@ -149,6 +150,7 @@ class EmbeddingBlock(nn.Module):
 
 
 class InteractionBlock(MessagePassing):
+    """ Interaction block for the GNN """
     def __init__(
         self,
         hidden_channels,
@@ -267,6 +269,7 @@ class InteractionBlock(MessagePassing):
 
 
 class OutputBlock(nn.Module):
+    """ Output block for the GNN """
     def __init__(self, energy_head, hidden_channels, act):
         super().__init__()
         self.energy_head = energy_head
@@ -315,22 +318,22 @@ class FAENet(BaseModel):
         cutoff (float): Cutoff distance for interatomic interactions.
             (default: :obj:`6.0`)
         use_pbc (bool): Use of periodic boundary conditions.
-            (default: true)
+            (default: `True`)
         act (str): Activation function
-            (default: swish)
+            (default: `swish`)
         max_num_neighbors (int): The maximum number of neighbors to
             collect for each node within the :attr:`cutoff` distance.
-            (default: :obj:`40`)
+            (default: `40`)
         hidden_channels (int): Hidden embedding size.
-            (default: :obj:`128`)
+            (default: `128`)
         tag_hidden_channels (int): Hidden tag embedding size.
             (default: :obj:`32`)
         pg_hidden_channels (int): Hidden period and group embedding size.
-            (default: obj:`32`)
+            (default: :obj:`32`)
         phys_embeds (bool): Do we include fixed physics-aware embeddings.
-            (default: obj: true)
+            (default: :obj: `True`)
         phys_hidden_channels (int): Hidden size of learnable physics-aware embeddings.
-            (default: obj:`0`)
+            (default: :obj:`0`)
         num_interactions (int): The number of interaction (i.e. message passing) blocks.
             (default: :obj:`4`)
         num_gaussians (int): The number of gaussians :math:`\mu` to encode distance info.
@@ -340,47 +343,47 @@ class FAENet(BaseModel):
         second_layer_MLP (bool): Use 2-layers MLP at the end of the Embedding block.
             (default: :obj:`False`)
         skip_co (str): Add a skip connection between each interaction block and
-            energy-head. (False, "add", "concat", "concat_atom")
+            energy-head. (`False`, `"add"`, `"concat"`, `"concat_atom"`)
         mp_type (str): Specificies the Message Passing type of the interaction block.
-            ("base", "updownscale_base", "updownscale", "updown_local_env", "simple"):
+            (`"base"`, `"updownscale_base"`, `"updownscale"`, `"updown_local_env"`, `"simple"`):
         graph_norm (bool): Whether to apply batch norm after every linear layer.
             (default: :obj:`True`)
         complex_mp (bool); Whether to add a second layer MLP at the end of each Interaction
             (default: :obj:`True`)
         energy_head (str): Method to compute energy prediction
             from atom representations.
-            (None, "weighted-av-initial-embeds", "weighted-av-final-embeds")
+            (`None`, `"weighted-av-initial-embeds"`, `"weighted-av-final-embeds"`)
         regress_forces (str): Specifies if we predict forces or not, and how
-            do we predict them. ("", "direct", "direct_with_gradient_target", False or None)
+            do we predict them. (`None` or `""`, `"direct"`, `"direct_with_gradient_target"`)
         force_decoder_type (str): Specifies the type of force decoder
-            ("simple", "mlp")
+            (`"simple"`, `"mlp"`, `"res"`, `"res_updown"`)
         force_decoder_model_config (dict): contains information about the
             for decoder architecture (e.g. number of layers, hidden size).
     """
 
     def __init__(
         self,
-        act: str = "swish",
-        complex_mp: bool = False,
         cutoff: float = 6.0,
-        energy_head: Optional[str] = None,
-        force_decoder_type: Optional[str] = "mlp",
-        force_decoder_model_config: Optional[Dict] = {"hidden_channels": 128},
-        graph_norm: bool = True,
-        hidden_channels: int = 128,
+        act: str = "swish",
+        use_pbc: bool = True,
+        complex_mp: bool = False,
         max_num_neighbors: int = 40,
-        mp_type: str = "updownscale_base",
-        num_filters: int = 128,
         num_gaussians: int = 50,
-        num_interactions: int = 4,
+        num_filters: int = 128,
+        hidden_channels: int = 128,
+        tag_hidden_channels: int = 32,
         pg_hidden_channels: int = 32,
-        phys_embeds: bool = True,
         phys_hidden_channels: int = 0,
-        regress_forces: bool = False,
+        phys_embeds: bool = True,
+        num_interactions: int = 4,
+        mp_type: str = "updownscale_base",
+        graph_norm: bool = True,
         second_layer_MLP: bool = True,
         skip_co: str = "concat",
-        tag_hidden_channels: int = 32,
-        use_pbc: bool = True,
+        energy_head: Optional[str] = None,
+        regress_forces: Optional[str] = None,
+        force_decoder_type: Optional[str] = "mlp",
+        force_decoder_model_config: Optional[dict] = {"hidden_channels": 128},
     ):
         super(FAENet, self).__init__()
 

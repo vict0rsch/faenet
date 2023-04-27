@@ -1,0 +1,57 @@
+# ---- DATASET: OC20 S2EF-2M split ----
+#
+# *** Important note ***
+#   The total number of gpus used for this run was 1.
+#   If the global batch size (num_gpus * batch_size) is modified
+#   the lr_milestones and warmup_steps need to be adjusted accordingly.
+default:
+  frame_averaging: 2D # {"2D", "3D", "DA", ""}
+  fa_method: stochastic # {"", all, stochastic, det, se3-all, se3-stochastic, se3-det}
+  model:
+    hidden_channels: 256
+    num_filters: 480
+    num_interactions: 7
+    num_gaussians: 136
+    regress_forces: direct_with_gradient_target
+    max_num_neighbors: 30
+    tag_hidden_channels: 32  # only for OC20
+    pg_hidden_channels: 64  # period & group embedding hidden channels
+    phys_embeds: False  # physics-aware embeddings for atoms
+    phys_hidden_channels: 0
+    energy_head: "weighted-av-final-embeds"  # Energy head: {False, weighted-av-initial-embeds, weighted-av-final-embeds}
+    skip_co: False  # Skip connections {False, "add", "concat"}
+    second_layer_MLP: False  # in EmbeddingBlock
+    complex_mp: True  # 2-layer MLP in Interaction blocks
+    mp_type: updownscale_base  # Message Passing type {'base', 'simple', 'updownscale', 'updownscale_base'}
+    graph_norm: True  # graph normalization layer
+    force_decoder_type: "mlp" # force head (`"simple"`, `"mlp"`, `"res"`, `"res_updown"`)
+    force_decoder_model_config:
+      simple:
+        hidden_channels: 128
+        norm: batch1d # batch1d, layer or null
+      mlp:
+        hidden_channels: 256
+        norm: batch1d # batch1d, layer or null
+      res:
+        hidden_channels: 128
+        norm: batch1d # batch1d, layer or null
+      res_updown:
+        hidden_channels: 128
+        norm: batch1d # batch1d, layer or null
+  optim:
+    max_epochs: 12
+    batch_size: 192
+    eval_batch_size: 192
+    num_workers: 4
+    lr_gamma: 0.1
+    lr_initial: 0.00025
+    warmup_factor: 0.2
+    max_epochs: 20
+    energy_grad_coefficient: 10
+    force_coefficient: 30
+    energy_coefficient: 1
+    warmup_steps: 30000
+    lr_milestones:
+      - 55000
+      - 75000
+      - 10000

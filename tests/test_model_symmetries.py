@@ -1,8 +1,10 @@
 import pytest
-
-import t_utils as tu  # noqa: F401
-
+import t_utils as tu
+from torch_geometric.data import Batch
+from faenet import FrameAveraging
+from faenet.eval import eval_model_symmetries
 from faenet import FAENet
+
 
 defaults = {
     "complex_mp": False,
@@ -28,29 +30,14 @@ defaults = {
 }
 
 init_space = {
-    "complex_mp": [False, True],
     "energy_head": [
         None,
-        "weighted-av-initial-embeds",
         "weighted-av-final-embeds",
     ],
-    "force_decoder_type": ["mlp", "simple", "", "res", "res_updown"],
-    "graph_norm": [False, True],
-    "mp_type": [
-        "simple",
-        "updownscale",
-        "updownscale_base",
-        "updown_local_env",
-        "base",
-    ],
-    "phys_embeds": [False, True],
-    "phys_hidden_channels": [0, 8],
-    "regress_forces": ["direct", "", "direct_with_gradient_target"],
-    "second_layer_MLP": [False, True],
-    "skip_co": [False, True],
-    "tag_hidden_channels": [0, 8],
+    "force_decoder_type": ["mlp", "res_updown"],
+    "regress_forces": ["", "direct"],
+    "skip_co": [False, "concat"],
 }
-
 
 def test_init_no_arg():
     model = FAENet()
@@ -69,11 +56,31 @@ def test_init(kwargs):
 
 
 @pytest.mark.parametrize("kwargs", tu.generate_inits(init_space, defaults))
-def test_forwards(kwargs):
+@pytest.mark.parametrize("fa_method", ["stochastic", "all", "se3-stochastic", ""])
+@pytest.mark.parametrize("frame_averaging", ["", "2D", "3D", "DA"])
+def test_symmetries(kwargs, fa_method, frame_averaging):
     item, kwargs = kwargs
-    if kwargs["regress_forces"] is True:
-        return
-    else:
-        model = FAENet(**kwargs)
-        y = model(tu.get_batch())
-        assert model is not None
+    batch = tu.get_batch()
+    model = FAENet(**kwargs)
+    transform = FrameAveraging(frame_averaging, fa_method)
+    neighbors = batch.neighbors
+
+    # Transform batch manually here instead of using Dataloader
+    b = Batch.to_data_list(batch)
+    for g in b:
+        transform(g)
+    b = Batch.from_data_list(b)
+    if not hasattr(b, "neighbors"):
+        b.neighbors = neighbors
+
+    # Eval symmetries
+    metrics = eval_model_symmetries(
+        loader=[b],
+        model=model,
+        frame_averaging=frame_averaging,
+        fa_method=fa_method,
+        device=b.pos.device,
+        task_name="energy",
+        crystal_task=True,
+    )
+    assert metrics

@@ -8,6 +8,9 @@ import torch_geometric
 from torch_geometric.transforms import LinearTransformation
 
 
+def swish(x):
+    return torch.nn.functional.silu(x)
+
 def get_pbc_distances(
     pos,
     edge_index,
@@ -17,7 +20,21 @@ def get_pbc_distances(
     return_offsets=False,
     return_distance_vec=False,
 ):
-    """Compute distances between atoms with periodic boundary conditions"""
+    """ Compute distances between atoms with periodic boundary conditions
+
+    Args:  
+        pos (tensor): (N, 3) tensor of atomic positions
+        edge_index (tensor): (2, E) tensor of edge indices
+        cell (tensor): (3, 3) tensor of cell vectors
+        cell_offsets (tensor): (N, 3) tensor of cell offsets
+        neighbors (tensor): (N, 3) tensor of neighbor indices
+        return_offsets (bool): return the offsets
+        return_distance_vec (bool): return the distance vectors
+
+    Returns:
+        dict: dictionary with the updated edge_index, atom distances,
+            and optionally the offsets and distance vectors.
+    """    
     row, col = edge_index
 
     distance_vectors = pos[row] - pos[col]
@@ -134,7 +151,8 @@ class RandomRotate(object):
 
 class RandomReflect(object):
     r"""Reflect node positions around a specific axis (x, y, x=y) or the origin.
-    Info -- type 0: reflect wrt x-axis, type1: wrt y-axis, type2: y=x, type3: origin
+    Take a random reflection type from a list of reflection types.
+        (type 0: reflect wrt x-axis, type1: wrt y-axis, type2: y=x, type3: origin)
     """
 
     def __init__(self):

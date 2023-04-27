@@ -1,0 +1,57 @@
+# ---- DATASET: QM9 ----
+
+default:
+  mode: train 
+  frame_averaging: 3D  # {"2D", "3D", "DA", ""}
+  fa_method: stochastic  # {"", all, stochastic, det, se3-all, se3-stochastic, se3-det}
+  dataset:
+    train:
+      lse_shift: true
+    val:
+      lse_shift: true
+    test:
+      lse_shift: true
+  model:
+    cutoff: 6.0
+    use_pbc: false
+    otf_graph: false
+    energy_head: ""
+    max_num_neighbors: 30
+    hidden_channels: 400
+    num_filters: 480
+    num_gaussians: 100
+    pg_hidden_channels: 32
+    num_interactions: 5
+    mp_type: updownscale_base
+    complex_mp: true
+    graph_norm: True
+    phys_embeds: false
+    phys_hidden_channels: 0
+    regress_forces: ""
+    second_layer_MLP: true
+    skip_co: False
+    tag_hidden_channels: 0
+  optim:
+    warmup_steps: 3000
+    warmup_factor: 0.2
+    # parameters EMA
+    batch_size: 64
+    ema_decay: 0.999
+    initial_lr: 0.0003
+    lr_initial: 0.001
+    max_epochs: 1500
+    loss_energy: mse
+    # early stopping
+    es_patience: 20
+    es_min_abs_change: 0.000001
+    es_warmup_epochs: 600
+    # all below is for the ReduceLROnPlateau scheduler
+    scheduler: ReduceLROnPlateau
+    mode: min
+    factor: 0.9
+    threshold: 0.0001
+    threshold_mode: abs
+    min_lr: 0.000001
+    verbose: true
+    patience: 15
+    lr_gamma: 0.1
