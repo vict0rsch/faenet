@@ -23,7 +23,7 @@
 # FAENet: Frame Averaging Equivariant GNN for Materials modeling
 
 
-This repository contains an implementation of the paper *FAENet: Frame Averaging Equivariant GNN for Materials modeling*, submitted to ICML 2023. More precisely, you will find:
+This repository contains an implementation of the paper *FAENet: Frame Averaging Equivariant GNN for Materials modeling*, accepted at ICML 2023. More precisely, you will find:
 
 * `FrameAveraging`: the transform that projects your pytorch-geometric data into the canonical space defined in the paper.
 * `FAENet` GNN model for material modeling. 
