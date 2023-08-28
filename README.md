@@ -47,7 +47,7 @@ pip install faenet
 
 ```python
 import torch
-from faenet.transform import FrameAveraging
+from faenet.transforms import FrameAveraging
 
 frame_averaging = "3D"  # symmetry preservation method used: {"3D", "2D", "DA", ""}:
 fa_method = "stochastic"  # the frame averaging method: {"det", "all", "se3-stochastic", "se3-det", "se3-all", ""}:
