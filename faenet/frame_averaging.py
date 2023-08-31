@@ -114,7 +114,7 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
 
     Args:
         pos (tensor): positions of atoms in the graph
-        cell (tensor): unit cell of the graph
+        cell (tensor): unit cell of the graph. None if no pbc. 
         fa_method (str): FA method used
             (stochastic, det, all, se3-all, se3-det, se3-stochastic)
         check (bool): check if constraints are satisfied. Default: False.
@@ -155,7 +155,7 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
 
     Args:
         pos (tensor): positions of atoms in the graph
-        cell (tensor): unit cell of the graph
+        cell (tensor): unit cell of the graph. None if no pbc.
         fa_method (str): FA method used (stochastic, det, all, se3)
         check (bool): check if constraints are satisfied. Default: False.
 
