@@ -312,7 +312,8 @@ class OutputBlock(nn.Module):
 
 
 class FAENet(BaseModel):
-    r"""Frame Averaging GNN model FAENet.
+    r""" Non-symmetry preservng GNN model for 3D atomic systems,
+    called FAENet: Frame Averaging Equivariant Network. 
 
     Args:
         cutoff (float): Cutoff distance for interatomic interactions.

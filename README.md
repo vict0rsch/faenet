@@ -23,11 +23,11 @@
 # FAENet: Frame Averaging Equivariant GNN for Materials modeling
 
 
-This repository contains an implementation of the paper *FAENet: Frame Averaging Equivariant GNN for Materials modeling*, accepted at ICML 2023. More precisely, you will find:
+This repository contains an implementation of the paper [*FAENet: Frame Averaging Equivariant GNN for Materials modeling*](https://arxiv.org/pdf/2305.05577.pdf), accepted at ICML 2023. More precisely, you will find:
 
-* `FrameAveraging`: the transform that projects your pytorch-geometric data into the canonical space defined in the paper.
-* `FAENet` GNN model for material modeling. 
-* `model_forward`: a high-level forward function that computes appropriate model predictions for the Frame Averaging method, i.e. handling the different frames and mapping to equivariant predictions. 
+* `FrameAveraging`: the transform that projects your pytorch-geometric data into a canonical space of all euclidean transformations, as defined in the paper.
+* `FAENet`: a GNN architecture for material modeling.  
+* `model_forward`: a high-level forward function that computes appropriate equivariant model predictions for the Frame Averaging method, i.e. handling the different frames and mapping to equivariant predictions.
 
 Also: https://github.com/vict0rsch/faenet
 
@@ -43,7 +43,7 @@ pip install faenet
 
 ### Frame Averaging Transform
 
-`FrameAveraging` is a Transform method applicable to pytorch-geometric `Data` object. You can choose among several options ranging from *Full FA* to *Stochastic FA* (in 2D or 3D) including data augmentation *DA*. This method shall be applied in the `get_item()` function of your `Dataset` class. Note that although this transform is specific to pytorch-geometric data objects, it can be easily extended to new settings since the core functions `frame_averaging_2D()` and `frame_averaging_3D()` generalise to other data format. 
+`FrameAveraging` is a Transform method applicable to pytorch-geometric `Data` object, which shall be used in the `get_item()` function of your `Dataset` class. This method derives a new canonical position for the atomic graph, identical for all euclidean symmetries, and stores it under the data attribute `fa_pos`. You can choose among several options for the frame averaging, ranging from *Full FA* to *Stochastic FA* (in 2D or 3D) including traditional data augmentation *DA* with rotated samples. See the full [doc](https://faenet.readthedocs.io/en/latest/autoapi/faenet/transforms/index.html#faenet.transforms.FrameAveraging) for more details. Note that, although this transform is specific to pytorch-geometric data objects, it can be easily extended to new settings since the core functions `frame_averaging_2D()` and `frame_averaging_3D()` generalise to other data format. 
 
 ```python
 import torch
@@ -52,12 +52,12 @@ from faenet.transforms import FrameAveraging
 frame_averaging = "3D"  # symmetry preservation method used: {"3D", "2D", "DA", ""}:
 fa_method = "stochastic"  # the frame averaging method: {"det", "all", "se3-stochastic", "se3-det", "se3-all", ""}:
 transform = FrameAveraging(frame_averaging, fa_method)
-transform(g)  # transform the PyG graph g 
+transform(data)  # transform the PyG graph data
 ```
 
 ### Model forward for Frame Averaging
 
-`model_forward()` aggregates model predictions when Frame Averaging is applied, as stipulated by the Equation (1) of the paper. It must be applied. 
+`model_forward()` aggregates the predictions of a chosen ML model (e.g FAENet) when Frame Averaging is applied, as stipulated by the Equation (1) of the paper. Applying the model on canonical positions (`fa_pos`) directly would not yield equivariant predictions. This method must be applied at training and inference time to compute all model predictions. 
 
 ```python
 from faenet.fa_forward import model_forward
@@ -73,7 +73,7 @@ preds = model_forward(
 
 ### FAENet GNN 
 
-Implementation of the FAENet GNN model, compatible with any dataset or transform. In short, FAENet is a very simple, scalable and expressive model. Since does not explicitly preserve data symmetries, it has the ability to process directly and unrestrictedly atom relative positions, which is very efficient. Note that the training procedure is not given here. 
+Implementation of the FAENet GNN model, compatible with any dataset or transform. In short, FAENet is a very simple, scalable and expressive model. Since does not explicitly preserve data symmetries, it has the ability to process directly and unrestrictedly atom relative positions, which is very efficient and powerful. Although it was specifically designed to be applied with Frame Averaging above, to preserve symmetries without any design restrictions, note that it can also be applied without. When applied with Frame Averaging, we need to use the `model_forward()` function above to compute model predictions, `model(data)` is not enough. Note that the training procedure is not given here, you should refer to the original [github repository](https://github.com/RolnickLab/ocp). Check the [documentation](https://faenet.readthedocs.io/en/latest/autoapi/faenet/model/index.html) to see all input parameters. 
 
 ```python
 from faenet.model import FAENet
@@ -82,7 +82,7 @@ preds = FAENet(**kwargs)
 model(batch)
 ```
 
-![FAENet architecture](examples/data/faenet-archi.png)
+![FAENet architecture](https://github.com/vict0rsch/faenet/blob/main/examples/data/faenet-archi.png)
 
 ### Eval 
 
