@@ -6,7 +6,7 @@ default:
   model:
     act: swish
     max_num_neighbors: 40
-    use_pbc: False
+    preprocess: base_preprocess
     regress_forces: direct_with_gradient_target
     hidden_channels: 500
     num_filters: 400

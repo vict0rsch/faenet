@@ -4,6 +4,7 @@ from torch_geometric.data import Batch
 from faenet import FrameAveraging
 from faenet.eval import eval_model_symmetries
 from faenet import FAENet
+from faenet.utils import pbc_preprocess
 
 
 defaults = {
@@ -26,7 +27,7 @@ defaults = {
     "second_layer_MLP": True,
     "skip_co": True,
     "tag_hidden_channels": 8,
-    "use_pbc": True,
+    "preprocess": "pbc_preprocess",
 }
 
 init_space = {

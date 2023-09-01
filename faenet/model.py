@@ -1,7 +1,7 @@
 """
 Code of the Scalable Frame Averaging (Rotation Invariant) GNN
 """
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import torch
 from torch import nn
@@ -372,7 +372,7 @@ class FAENet(BaseModel):
         self,
         cutoff: float = 6.0,
         act: str = "swish",
-        preprocess: callable = "pbc_preprocess",
+        preprocess: Union[str, callable] = "pbc_preprocess",
         complex_mp: bool = False,
         max_num_neighbors: int = 40,
         num_gaussians: int = 50,
@@ -415,6 +415,9 @@ class FAENet(BaseModel):
         self.skip_co = skip_co
         self.tag_hidden_channels = tag_hidden_channels
         self.preprocess = preprocess
+    
+        if isinstance(self.preprocess, str):
+            self.preprocess = eval(self.preprocess)
 
         if not isinstance(self.regress_forces, str):
             assert self.regress_forces is False or self.regress_forces is None, (
@@ -515,7 +518,7 @@ class FAENet(BaseModel):
 
         # Embedding block
         h, e = self.embed_block(
-            z, rel_pos, edge_attr, data.tags if hasattr(data, tags) else None
+            z, rel_pos, edge_attr, data.tags if hasattr(data,"tags") else None
         )
 
         # Compute atom weights for late energy head

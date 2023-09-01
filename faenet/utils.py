@@ -69,15 +69,15 @@ def get_pbc_distances(
     return out
 
 
-def base_preprocess(data, cutoff, max_num_neighbors):
+def base_preprocess(data, cutoff=6.0, max_num_neighbors=40):
     """ Preprocess data using a simple cutoff radius
         
         Args:
         data (data.Data): data object with specific attributes:
-                batch (N): index of the graph to which each atom belongs to in this batch
-                pos (N,3): atom positions
-                atomic_numbers (N): atomic numbers of each atom in the batch
-                edge_index (2,E): edge indices, for all graphs of the batch
+                - batch (N): index of the graph to which each atom belongs to in this batch
+                - pos (N,3): atom positions
+                - atomic_numbers (N): atomic numbers of each atom in the batch
+                - edge_index (2,E): edge indices, for all graphs of the batch
             With B is the batch size, N the number of atoms in the batch (across all graphs), 
             and E the number of edges in the batch.
             If these attributes are not present, implement your own preprocess function.
@@ -98,20 +98,20 @@ def base_preprocess(data, cutoff, max_num_neighbors):
     edge_weight = rel_pos.norm(dim=-1)
     return data.atomic_numbers.long(), data.batch, edge_index, rel_pos, edge_weight
 
-def pbc_preprocess(data, **kwargs):
+def pbc_preprocess(data, cutoff=6.0, max_num_neighbors=40):
     """ Preprocess data using periodic boundary conditions
     Used for OC20. 
 
     Args:
         data (data.Data): data object with specific attributes. B is the batch size, 
             N the number of atoms in the batch (across all graphs), E the number of edges in the batch.
-                batch (N): index of the graph to which each atom belongs to in this batch
-                pos (N,3): atom positions
-                atomic_numbers (N): atomic numbers of each atom in the batch
-                cell (B, 3, 3): unit cell containing each graph, for materials.
-                cell_offsets (E, 3): cell offsets for each edge, for materials
-                neighbors (B): total number of edges inside each graph.
-                edge_index (2,E): edge indices, for all graphs of the batch
+                - batch (N): index of the graph to which each atom belongs to in this batch
+                - pos (N,3): atom positions
+                - atomic_numbers (N): atomic numbers of each atom in the batch
+                - cell (B, 3, 3): unit cell containing each graph, for materials.
+                - cell_offsets (E, 3): cell offsets for each edge, for materials
+                - neighbors (B): total number of edges inside each graph.
+                - edge_index (2,E): edge indices, for all graphs of the batch
             If these attributes are not present, implement your own preprocess function.
 
     Returns:

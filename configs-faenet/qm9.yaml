@@ -13,7 +13,7 @@ default:
       lse_shift: true
   model:
     cutoff: 6.0
-    use_pbc: false
+    preprocess: base_preprocess
     otf_graph: false
     energy_head: ""
     max_num_neighbors: 30
