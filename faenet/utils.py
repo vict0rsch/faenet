@@ -6,10 +6,12 @@ import torch
 import torch.nn as nn
 import torch_geometric
 from torch_geometric.transforms import LinearTransformation
+from torch_geometric.nn import radius_graph
 
 
 def swish(x):
     return torch.nn.functional.silu(x)
+
 
 def get_pbc_distances(
     pos,
@@ -20,9 +22,9 @@ def get_pbc_distances(
     return_offsets=False,
     return_distance_vec=False,
 ):
-    """ Compute distances between atoms with periodic boundary conditions
+    """Compute distances between atoms with periodic boundary conditions
 
-    Args:  
+    Args:
         pos (tensor): (N, 3) tensor of atomic positions
         edge_index (tensor): (2, E) tensor of edge indices
         cell (tensor): (3, 3) tensor of cell vectors
@@ -34,7 +36,7 @@ def get_pbc_distances(
     Returns:
         dict: dictionary with the updated edge_index, atom distances,
             and optionally the offsets and distance vectors.
-    """    
+    """
     row, col = edge_index
 
     distance_vectors = pos[row] - pos[col]
@@ -65,6 +67,70 @@ def get_pbc_distances(
         out["offsets"] = offsets[nonzero_idx]
 
     return out
+
+
+def base_preprocess(data, cutoff, max_num_neighbors):
+    """ Preprocess data using a simple cutoff radius
+        
+        Args:
+        data (data.Data): data object with specific attributes:
+                batch (N): index of the graph to which each atom belongs to in this batch
+                pos (N,3): atom positions
+                atomic_numbers (N): atomic numbers of each atom in the batch
+                edge_index (2,E): edge indices, for all graphs of the batch
+            With B is the batch size, N the number of atoms in the batch (across all graphs), 
+            and E the number of edges in the batch.
+            If these attributes are not present, implement your own preprocess function.
+        cutoff (int): cutoff radius (in Angstrom)
+        max_num_neighbors (int): maximum number of neighbors per node.
+
+    Returns:
+        tuple: (atomic_numbers, batch, sparse adjacency matrix, relative positions, distances)
+    """
+    edge_index = radius_graph(
+        data.pos,
+        r=cutoff,
+        batch=data.batch,
+        max_num_neighbors=max_num_neighbors,
+    ) 
+    row, col = data.edge_index
+    rel_pos = data.pos[row] - data.pos[col]
+    edge_weight = rel_pos.norm(dim=-1)
+    return data.atomic_numbers.long(), data.batch, edge_index, rel_pos, edge_weight
+
+def pbc_preprocess(data, **kwargs):
+    """ Preprocess data using periodic boundary conditions
+    Used for OC20. 
+
+    Args:
+        data (data.Data): data object with specific attributes. B is the batch size, 
+            N the number of atoms in the batch (across all graphs), E the number of edges in the batch.
+                batch (N): index of the graph to which each atom belongs to in this batch
+                pos (N,3): atom positions
+                atomic_numbers (N): atomic numbers of each atom in the batch
+                cell (B, 3, 3): unit cell containing each graph, for materials.
+                cell_offsets (E, 3): cell offsets for each edge, for materials
+                neighbors (B): total number of edges inside each graph.
+                edge_index (2,E): edge indices, for all graphs of the batch
+            If these attributes are not present, implement your own preprocess function.
+
+    Returns:
+        tuple: (atomic_numbers, batch, sparse adjacency matrix, relative positions, distances)
+    """
+    out = get_pbc_distances(
+        data.pos,
+        data.edge_index,
+        data.cell,
+        data.cell_offsets,
+        data.neighbors,
+        return_distance_vec=True,
+    )
+
+    edge_index = out["edge_index"]
+    edge_weight = out["distances"]
+    rel_pos = out["distance_vec"]
+
+    return data.atomic_numbers.long(), data.batch, edge_index, rel_pos, edge_weight
 
 
 class GaussianSmearing(nn.Module):

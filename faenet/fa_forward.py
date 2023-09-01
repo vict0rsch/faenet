@@ -12,7 +12,7 @@ def model_forward(batch, model, frame_averaging, mode="train", crystal_task=True
             ("2D", "3D", "DA", "")
         mode (str, optional): model mode. Defaults to "train".
             ("train", "inference")
-        crystal_task (bool, optional): Whether crystals (or molecules) are considered. 
+        crystal_task (bool, optional): Whether crystals (molecules) are considered. 
             (default: :obj:`True`)
 
     Returns:

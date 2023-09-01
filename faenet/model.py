@@ -6,18 +6,19 @@ from typing import Dict, Optional
 import torch
 from torch import nn
 from torch.nn import Embedding, Linear
-from torch_geometric.nn import MessagePassing, radius_graph
+from torch_geometric.nn import MessagePassing
 from torch_geometric.nn.norm import GraphNorm
 from torch_scatter import scatter
 
 from faenet.base_model import BaseModel
 from faenet.embedding import PhysEmbedding
 from faenet.force_decoder import ForceDecoder
-from faenet.utils import get_pbc_distances, GaussianSmearing, swish
+from faenet.utils import GaussianSmearing, swish, pbc_preprocess, base_preprocess
 
 
 class EmbeddingBlock(nn.Module):
-    """ Embedding block for the GNN"""
+    """Initialise atom and edge representations"""
+
     def __init__(
         self,
         num_gaussians,
@@ -150,7 +151,8 @@ class EmbeddingBlock(nn.Module):
 
 
 class InteractionBlock(MessagePassing):
-    """ Interaction block for the GNN """
+    """Updates atom representations through message passing"""
+
     def __init__(
         self,
         hidden_channels,
@@ -269,7 +271,8 @@ class InteractionBlock(MessagePassing):
 
 
 class OutputBlock(nn.Module):
-    """ Output block for the GNN """
+    """Compute task-specific predictions from final atom representations"""
+
     def __init__(self, energy_head, hidden_channels, act):
         super().__init__()
         self.energy_head = energy_head
@@ -312,14 +315,17 @@ class OutputBlock(nn.Module):
 
 
 class FAENet(BaseModel):
-    r""" Non-symmetry preservng GNN model for 3D atomic systems,
-    called FAENet: Frame Averaging Equivariant Network. 
+    r"""Non-symmetry preserving GNN model for 3D atomic systems,
+    called FAENet: Frame Averaging Equivariant Network.
 
     Args:
         cutoff (float): Cutoff distance for interatomic interactions.
             (default: :obj:`6.0`)
-        use_pbc (bool): Use of periodic boundary conditions.
-            (default: `True`)
+        preprocess (callable): Pre-processing function for the data. This function
+            should accept a data object as input and return a tuple containing the following:
+            atomic numbers, batch indices, final adjacency, relative positions, pairwise distances.
+            Examples of valid preprocessing functions include `pbc_preprocess`,
+            `base_preprocess`, or custom functions.
         act (str): Activation function
             (default: `swish`)
         max_num_neighbors (int): The maximum number of neighbors to
@@ -366,7 +372,7 @@ class FAENet(BaseModel):
         self,
         cutoff: float = 6.0,
         act: str = "swish",
-        use_pbc: bool = True,
+        preprocess: callable = "pbc_preprocess",
         complex_mp: bool = False,
         max_num_neighbors: int = 40,
         num_gaussians: int = 50,
@@ -408,7 +414,7 @@ class FAENet(BaseModel):
         self.second_layer_MLP = second_layer_MLP
         self.skip_co = skip_co
         self.tag_hidden_channels = tag_hidden_channels
-        self.use_pbc = use_pbc
+        self.preprocess = preprocess
 
         if not isinstance(self.regress_forces, str):
             assert self.regress_forces is False or self.regress_forces is None, (
@@ -491,48 +497,26 @@ class FAENet(BaseModel):
                 self.hidden_channels,
             )
 
+    # FAENet's forward pass in done in BaseModel, inherited here.
+    # It uses forces_forward() and energy_forward() defined below.
+
     def forces_forward(self, preds):
         if self.decoder:
             return self.decoder(preds["hidden_state"])
 
     def energy_forward(self, data):
-        # Rewire the graph
-        z = data.atomic_numbers.long()
-        pos = data.pos
-        batch = data.batch
-
-        # Use periodic boundary conditions
-        if self.use_pbc:
-            assert z.dim() == 1 and z.dtype == torch.long
-
-            out = get_pbc_distances(
-                pos,
-                data.edge_index,
-                data.cell,
-                data.cell_offsets,
-                data.neighbors,
-                return_distance_vec=True,
-            )
-
-            edge_index = out["edge_index"]
-            edge_weight = out["distances"]
-            rel_pos = out["distance_vec"]
-            edge_attr = self.distance_expansion(edge_weight)
-        else:
-            edge_index = radius_graph(
-                pos,
-                r=self.cutoff,
-                batch=batch,
-                max_num_neighbors=self.max_num_neighbors,
-            )
-            # edge_index = data.edge_index
-            row, col = edge_index
-            rel_pos = pos[row] - pos[col]
-            edge_weight = rel_pos.norm(dim=-1)
-            edge_attr = self.distance_expansion(edge_weight)
+        # Pre-process data (e.g. pbc, cutoff graph, etc.)
+        # Should output all necessary attributes, in correct format.
+        z, batch, edge_index, rel_pos, edge_weight = self.preprocess(
+            data, self.cutoff, self.max_num_neighbors
+        )
+        edge_attr = self.distance_expansion(edge_weight)  # RBF of pairwise distances
+        assert z.dim() == 1 and z.dtype == torch.long
 
         # Embedding block
-        h, e = self.embed_block(z, rel_pos, edge_attr, data.tags)
+        h, e = self.embed_block(
+            z, rel_pos, edge_attr, data.tags if hasattr(data, tags) else None
+        )
 
         # Compute atom weights for late energy head
         if self.energy_head == "weighted-av-initial-embeds":
