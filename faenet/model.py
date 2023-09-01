@@ -518,7 +518,7 @@ class FAENet(BaseModel):
 
         # Embedding block
         h, e = self.embed_block(
-            z, rel_pos, edge_attr, data.tags if hasattr(data,"tags") else None
+            z, rel_pos, edge_attr, data.tags if hasattr(data, "tags") else None
         )
 
         # Compute atom weights for late energy head
