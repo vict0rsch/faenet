@@ -504,10 +504,27 @@ class FAENet(BaseModel):
     # It uses forces_forward() and energy_forward() defined below.
 
     def forces_forward(self, preds):
+        """ Predicts forces for 3D atomic systems.
+        Can be utilised to predict any atom-level property.
+        
+        Args:
+            preds (dict): dictionnary with predicted properties for each graph.
+
+        Returns:
+            dict: additional predicted properties, at an atom-level (e.g. forces)
+        """
         if self.decoder:
             return self.decoder(preds["hidden_state"])
 
     def energy_forward(self, data):
+        """ Predicts any graph-level properties (e.g. energy) for 3D atomic systems.
+
+        Args:
+            data (data.Batch): Batch of graphs datapoints. 
+
+        Returns:
+            dict: predicted properties for each graph (e.g. energy)
+        """
         # Pre-process data (e.g. pbc, cutoff graph, etc.)
         # Should output all necessary attributes, in correct format.
         z, batch, edge_index, rel_pos, edge_weight = self.preprocess(

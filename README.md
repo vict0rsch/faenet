@@ -57,7 +57,7 @@ transform(data)  # transform the PyG graph data
 
 ### Model forward for Frame Averaging
 
-`model_forward()` aggregates the predictions of a chosen ML model (e.g FAENet) when Frame Averaging is applied, as stipulated by the Equation (1) of the paper. Applying the model on canonical positions (`fa_pos`) directly would not yield equivariant predictions. This method must be applied at training and inference time to compute all model predictions. 
+`model_forward()` aggregates the predictions of a chosen ML model (e.g FAENet) when Frame Averaging is applied, as stipulated by the Equation (1) of the paper. INded, applying the model on canonical positions (`fa_pos`) directly would not yield equivariant predictions. This method must be applied at training and inference time to compute all model predictions. It requires `batch` to have pos, batch and frame averaging attributes (see [docu](https://faenet.readthedocs.io/en/latest/autoapi/faenet/fa_forward/index.html)). 
 
 ```python
 from faenet.fa_forward import model_forward
@@ -75,6 +75,8 @@ preds = model_forward(
 
 Implementation of the FAENet GNN model, compatible with any dataset or transform. In short, FAENet is a very simple, scalable and expressive model. Since does not explicitly preserve data symmetries, it has the ability to process directly and unrestrictedly atom relative positions, which is very efficient and powerful. Although it was specifically designed to be applied with Frame Averaging above, to preserve symmetries without any design restrictions, note that it can also be applied without. When applied with Frame Averaging, we need to use the `model_forward()` function above to compute model predictions, `model(data)` is not enough. Note that the training procedure is not given here, you should refer to the original [github repository](https://github.com/RolnickLab/ocp). Check the [documentation](https://faenet.readthedocs.io/en/latest/autoapi/faenet/model/index.html) to see all input parameters. 
 
+Note that the model assumes input data (e.g.`batch` below) to have certain attributes, like atomic_numbers, batch, pos or edge_index. If your data does not have these attributes, you can apply custom pre-processing functions, taking `pbc_preprocess` or `base_preprocess` in [utils.py](https://faenet.readthedocs.io/en/latest/autoapi/faenet/utils/index.html) as inspiration. You simply need to pass them as argument to FAENet (`preprocess`).
+
 ```python
 from faenet.model import FAENet
 
@@ -87,6 +89,8 @@ model(batch)
 ### Eval 
 
 The `eval_model_symmetries()` function helps you evaluate the equivariant, invariant and other properties of a model, as we did in the paper. 
+
+Note: you can predict any atom-level or graph-level property, although the code explicitly refers to energy and forces.
 
 ### Tests
 
