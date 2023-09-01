@@ -189,8 +189,8 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
     return fa_pos, fa_cell, fa_rot
 
 def data_augmentation(g, d=3, *args):
-    """Data augmentation where we randomly rotate each graph
-    in the dataloader transform
+    """Data augmentation where we add randomly rotated graphs
+    in the dataloader transform.
 
     Args:
         g (data.Data): single graph
