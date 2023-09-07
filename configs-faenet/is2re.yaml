@@ -15,7 +15,7 @@ default:
     num_interactions: 5
     num_gaussians: 104
     cutoff: 6.0
-    use_pbc: True
+    preprocess: pbc_preprocess
     regress_forces: False
     tag_hidden_channels: 64  # only for OC20
     pg_hidden_channels: 64  # period & group embedding hidden channels

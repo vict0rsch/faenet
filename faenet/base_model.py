@@ -19,7 +19,7 @@ class BaseModel(nn.Module):
                 if hasattr(child, "bias"):
                     child.bias.data.fill_(0)
 
-    def energy_forward(self, data):
+    def energy_forward(self, data, preproc=True):
         """Forward pass for energy prediction."""
         raise NotImplementedError
 
@@ -27,7 +27,7 @@ class BaseModel(nn.Module):
         """Forward pass for force prediction."""
         raise NotImplementedError
 
-    def forward(self, data, mode="train"):
+    def forward(self, data, mode="train", preproc=True):
         """Main Forward pass."""
         grad_forces = forces = None
 
@@ -36,7 +36,7 @@ class BaseModel(nn.Module):
             data.pos.requires_grad_(True)
 
         # predict energy
-        preds = self.energy_forward(data)
+        preds = self.energy_forward(data, preproc)
 
         if self.regress_forces:
             if self.regress_forces in {"direct", "direct_with_gradient_target"}:
