@@ -415,7 +415,7 @@ class FAENet(BaseModel):
         self.skip_co = skip_co
         self.tag_hidden_channels = tag_hidden_channels
         self.preprocess = preprocess
-    
+
         if isinstance(self.preprocess, str):
             self.preprocess = eval(self.preprocess)
 
@@ -504,9 +504,9 @@ class FAENet(BaseModel):
     # It uses forces_forward() and energy_forward() defined below.
 
     def forces_forward(self, preds):
-        """ Predicts forces for 3D atomic systems.
+        """Predicts forces for 3D atomic systems.
         Can be utilised to predict any atom-level property.
-        
+
         Args:
             preds (dict): dictionnary with predicted properties for each graph.
 
@@ -516,20 +516,32 @@ class FAENet(BaseModel):
         if self.decoder:
             return self.decoder(preds["hidden_state"])
 
-    def energy_forward(self, data):
-        """ Predicts any graph-level properties (e.g. energy) for 3D atomic systems.
+    def energy_forward(self, data, preproc=True):
+        """Predicts any graph-level properties (e.g. energy) for 3D atomic systems.
 
         Args:
-            data (data.Batch): Batch of graphs datapoints. 
+            data (data.Batch): Batch of graphs datapoints.
+            preproc (bool): Whether to preprocess the graph. Default to True.
 
         Returns:
             dict: predicted properties for each graph (e.g. energy)
         """
         # Pre-process data (e.g. pbc, cutoff graph, etc.)
         # Should output all necessary attributes, in correct format.
-        z, batch, edge_index, rel_pos, edge_weight = self.preprocess(
-            data, self.cutoff, self.max_num_neighbors
-        )
+        if preproc:
+            z, batch, edge_index, rel_pos, edge_weight = self.preprocess(
+                data, self.cutoff, self.max_num_neighbors
+            )
+        else:
+            rel_pos = data.pos[data.edge_index[0]] - data.pos[data.edge_index[1]]
+            z, batch, edge_index, rel_pos, edge_weight = (
+                data.atomic_numbers.long(),
+                data.batch,
+                data.edge_index,
+                rel_pos,
+                rel_pos.norm(dim=-1),
+            )
+
         edge_attr = self.distance_expansion(edge_weight)  # RBF of pairwise distances
         assert z.dim() == 1 and z.dtype == torch.long
 
