@@ -95,8 +95,7 @@ def base_preprocess(data, cutoff=6.0, max_num_neighbors=40):
     ) 
     row, col = data.edge_index
     rel_pos = data.pos[row] - data.pos[col]
-    edge_weight = rel_pos.norm(dim=-1)
-    return data.atomic_numbers.long(), data.batch, edge_index, rel_pos, edge_weight
+    return data.atomic_numbers.long(), data.batch, edge_index, rel_pos, rel_pos.norm(dim=-1)
 
 def pbc_preprocess(data, cutoff=6.0, max_num_neighbors=40):
     """ Preprocess data using periodic boundary conditions
@@ -126,11 +125,7 @@ def pbc_preprocess(data, cutoff=6.0, max_num_neighbors=40):
         return_distance_vec=True,
     )
 
-    edge_index = out["edge_index"]
-    edge_weight = out["distances"]
-    rel_pos = out["distance_vec"]
-
-    return data.atomic_numbers.long(), data.batch, edge_index, rel_pos, edge_weight
+    return data.atomic_numbers.long(), data.batch, out["edge_index"], out["distance_vec"], out["distances"]
 
 
 class GaussianSmearing(nn.Module):
