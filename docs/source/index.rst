@@ -6,3 +6,4 @@
    :maxdepth: 4
 
    self
+   tutorials/index

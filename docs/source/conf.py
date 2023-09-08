@@ -7,12 +7,13 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
+from pathlib import Path
 
 project = "faenet"
 copyright = "2023, OCP"
 author = "Victor Schmidt"
 
-
+ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, os.path.abspath("../.."))
 
 # -- General configuration ---------------------------------------------------
@@ -26,12 +27,35 @@ extensions = [
     "sphinx.ext.autodoc",
     "autoapi.extension",
     "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "sphinx_design",
+    "sphinx_copybutton",
+    "sphinx_autodoc_typehints",
 ]
-autoapi_type = "python"
-autoapi_dirs = ["../../faenet"]
-autoapi_member_order = "alphabetical"
 
+# sphinx.ext.intersphinx
+intersphinx_mapping = {
+    "torch": ("https://pytorch.org/docs/stable", None),
+}
+
+# sphinx.ext.autodoc & autoapi.extension
+# https://autoapi.readthedocs.io/
 autodoc_typehints = "description"
+autoapi_type = "python"
+autoapi_dirs = [str(ROOT / "faenet")]
+autoapi_member_order = "alphabetical"
+autoapi_template_dir = "_templates/autoapi"
+autoapi_python_class_content = "init"
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "show-inheritance",
+    "show-module-summary",
+    # "imported-members",
+    "special-members",
+]
+autoapi_keep_files = False
+
 mathjax_path = (
     "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 )
