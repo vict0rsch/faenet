@@ -367,26 +367,25 @@ class FAENet(BaseModel):
         force_decoder_model_config (dict): contains information about the
             for decoder architecture (e.g. number of layers, hidden size).
     """
-
     def __init__(
         self,
         cutoff: float = 6.0,
-        act: str = "swish",
         preprocess: Union[str, callable] = "pbc_preprocess",
-        complex_mp: bool = False,
+        act: str = "swish",
         max_num_neighbors: int = 40,
-        num_gaussians: int = 50,
-        num_filters: int = 128,
         hidden_channels: int = 128,
         tag_hidden_channels: int = 32,
         pg_hidden_channels: int = 32,
-        phys_hidden_channels: int = 0,
         phys_embeds: bool = True,
+        phys_hidden_channels: int = 0,
         num_interactions: int = 4,
-        mp_type: str = "updownscale_base",
-        graph_norm: bool = True,
+        num_gaussians: int = 50,
+        num_filters: int = 128,
         second_layer_MLP: bool = True,
         skip_co: str = "concat",
+        mp_type: str = "updownscale_base",
+        graph_norm: bool = True,
+        complex_mp: bool = False,
         energy_head: Optional[str] = None,
         regress_forces: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
