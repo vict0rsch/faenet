@@ -273,13 +273,13 @@ class InteractionBlock(MessagePassing):
 class OutputBlock(nn.Module):
     """Compute task-specific predictions from final atom representations"""
 
-    def __init__(self, energy_head, hidden_channels, act):
+    def __init__(self, energy_head, hidden_channels, act, out_dim=1):
         super().__init__()
         self.energy_head = energy_head
         self.act = act
 
         self.lin1 = Linear(hidden_channels, hidden_channels // 2)
-        self.lin2 = Linear(hidden_channels // 2, 1)
+        self.lin2 = Linear(hidden_channels // 2, out_dim)
 
         if self.energy_head == "weighted-av-final-embeds":
             self.w_lin = Linear(hidden_channels, 1)
@@ -387,6 +387,7 @@ class FAENet(BaseModel):
         graph_norm: bool = True,
         complex_mp: bool = False,
         energy_head: Optional[str] = None,
+        out_dim: int = 1,
         regress_forces: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
         force_decoder_model_config: Optional[dict] = {"hidden_channels": 128},
@@ -471,7 +472,7 @@ class FAENet(BaseModel):
 
         # Output block
         self.output_block = OutputBlock(
-            self.energy_head, self.hidden_channels, self.act
+            self.energy_head, self.hidden_channels, self.act, out_dim
         )
 
         # Energy head
@@ -492,7 +493,7 @@ class FAENet(BaseModel):
 
         # Skip co
         if self.skip_co == "concat":
-            self.mlp_skip_co = Linear((self.num_interactions + 1), 1)
+            self.mlp_skip_co = Linear(out_dim * (self.num_interactions + 1), out_dim)
         elif self.skip_co == "concat_atom":
             self.mlp_skip_co = Linear(
                 ((self.num_interactions + 1) * self.hidden_channels),
