@@ -65,7 +65,10 @@ class BaseModel(nn.Module):
                 raise ValueError(
                     f"Unknown forces regression mode {self.regress_forces}"
                 )
-
+        
+        if not self.pred_as_dict: 
+            return preds["energy"]
+        
         return preds
 
     def forces_as_energy_grad(self, pos, energy):

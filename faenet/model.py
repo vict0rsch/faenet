@@ -360,6 +360,9 @@ class FAENet(BaseModel):
         energy_head (str): Method to compute energy prediction
             from atom representations.
             (`None`, `"weighted-av-initial-embeds"`, `"weighted-av-final-embeds"`)
+        pred_as_dict (bool): Set to False to return a (property) prediction tensor.  
+            By default, predictions are returned as a dictionary with several keys (e.g. energy, forces)
+            (default: :obj:`True`)
         regress_forces (str): Specifies if we predict forces or not, and how
             do we predict them. (`None` or `""`, `"direct"`, `"direct_with_gradient_target"`)
         force_decoder_type (str): Specifies the type of force decoder
@@ -388,6 +391,7 @@ class FAENet(BaseModel):
         complex_mp: bool = False,
         energy_head: Optional[str] = None,
         out_dim: int = 1,
+        pred_as_dict: bool = True, 
         regress_forces: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
         force_decoder_model_config: Optional[dict] = {"hidden_channels": 128},
@@ -415,6 +419,7 @@ class FAENet(BaseModel):
         self.skip_co = skip_co
         self.tag_hidden_channels = tag_hidden_channels
         self.preprocess = preprocess
+        self.pred_as_dict = pred_as_dict
 
         if isinstance(self.preprocess, str):
             self.preprocess = eval(self.preprocess)
