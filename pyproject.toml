@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "faenet"
-version = "0.1.1"
+version = "0.1.2"
 description = "PyTorch implementation for FAENet from 'FAENet: Frame Averaging Equivariant GNN for Materials Modeling'"
 authors = ["Victor Schmidt <vsch@pm.me>", "Alexandre Duval <alexandre.duval@mila.quebec>"]
 license = "MIT"
