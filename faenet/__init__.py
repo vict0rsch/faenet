@@ -1,5 +1,5 @@
 """
-FAENet: Frame Averaging Encoder Network
+FAENet: Frame Averaging Equivariant Network
 
 .. note::
 

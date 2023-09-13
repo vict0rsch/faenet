@@ -6,7 +6,6 @@
    :maxdepth: 4
 
    About <self>
-   tutorials/index
 
 .. toctree::
    :glob:

@@ -1,6 +1,0 @@
-``FAENet`` tutorials
-====================
-
-.. toctree::
-
-    predictions
