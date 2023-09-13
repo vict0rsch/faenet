@@ -1,12 +1,14 @@
 Getting started
 ===============
 
+In this section, we will show you how to (1) use the Frame Averaging transform (2) use FAENet to make predictions on your own dataset (3) evaluate model properties and test the code.
+
 .. contents:: Table of Contents
     :depth: 1
     :local:
 
-Frame Averaging Transform
--------------------------
+Frame Averaging
+---------------
 
 :class:`~faenet.transforms.FrameAveraging` is a Transform method applicable to pytorch-geometric ``Data`` object, which shall be used in the ``get_item()`` function of your ``Dataset`` class. This method derives a new canonical position for the atomic graph, identical for all euclidean symmetries, and stores it under the data attribute ``fa_pos``. You can choose among several options for the frame averaging, ranging from *Full FA* to *Stochastic FA* (in 2D or 3D) including traditional data augmentation *DA* with rotated samples. Note that, although this transform is specific to pytorch-geometric data objects, it can be easily extended to new settings since the core functions :meth:`~faenet.frame_averaging.frame_averaging_2D` and :meth:`~faenet.frame_averaging.frame_averaging_3D` generalise to other data format.
 
@@ -21,8 +23,8 @@ Frame Averaging Transform
     transform(data)  # transform the PyG graph data
 
 
-Model forward for Frame Averaging
----------------------------------
+Model Forward Pass with Frame Averaging
+---------------------------------------   
 
 :meth:`~faenet.fa_forward.model_forward` aggregates the predictions of a chosen ML model (e.g FAENet) when Frame Averaging is applied, as stipulated by the Equation (1) of the paper. INded, applying the model on canonical positions (``fa_pos``) directly would not yield equivariant predictions. This method must be applied at training and inference time to compute all model predictions. It requires ``batch`` to have pos, batch and frame averaging attributes.
 
@@ -38,12 +40,13 @@ Model forward for Frame Averaging
         crystal_task=True,  # for crystals, with pbc conditions
     )
 
-FAENet GNN
-----------
+FAENet
+------
 
-Implementation of the :class:`~faenet.model.FAENet` GNN model, compatible with any dataset or transform. In short, FAENet is a very simple, scalable and expressive model. Since does not explicitly preserve data symmetries, it has the ability to process directly and unrestrictedly atom relative positions, which is very efficient and powerful. Although it was specifically designed to be applied with Frame Averaging above, to preserve symmetries without any design restrictions, note that it can also be applied without. When applied with Frame Averaging, we need to use the :meth:`~faenet.fa_forward.model_forward` function above to compute model predictions, ``model(data)`` is not enough. Note that the training procedure is not given here, you should refer to the original [github repository](https://github.com/RolnickLab/ocp). Check the [documentation](https://faenet.readthedocs.io/en/latest/autoapi/faenet/model/index.html) to see all input parameters.
+Implementation of the :class:`~faenet.model.FAENet` GNN model, compatible with any dataset or transform. In short, FAENet is a very simple, scalable and expressive model. Since does not explicitly preserve data symmetries, it has the ability to process directly and unrestrictedly atom relative positions, which is very efficient and powerful. Although it was specifically designed to be applied with Frame Averaging above, to preserve symmetries without any design restrictions, note that it can also be applied without. When applied with Frame Averaging, we need to use the :meth:`~faenet.fa_forward.model_forward` function above to compute model predictions, ``model(data)`` is not enough. Note that the training procedure is not given here, you should refer to the `original github repository <https://github.com/RolnickLab/ocp>`_. 
+Check :class:`~faenet.model.FAENet` to see all input parameters.
 
-Assumption: the input data (e.g. ``batch`` below) has certain attributes (e.g. atomic_numbers, batch, pos or edge_index). If your data does not have these attributes, you can apply custom pre-processing functions, taking :meth:`~faenet.utils.pbc_preprocess` or :meth:`~faenet.utils.base_preprocess` as inspiration. You simply need to pass them as argument to FAENet (``preprocess``).
+**Assumption**: the input data (e.g. ``batch`` below) has certain attributes (e.g. atomic_numbers, batch, pos or edge_index). If your data does not have these attributes, you can apply custom pre-processing functions, taking :meth:`~faenet.utils.pbc_preprocess` or :meth:`~faenet.utils.base_preprocess` as inspiration. You simply need to pass them as argument to FAENet (``preprocess``).
 
 .. code-block:: python
 
