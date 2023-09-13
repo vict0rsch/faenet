@@ -7,7 +7,14 @@
 
    About <self>
    tutorials/index
+
+.. toctree::
+   :glob:
+   :caption: User Guide
+   :maxdepth: 4
+   
    install/index
+   getting-started/index
 
 .. toctree::
    :glob:
