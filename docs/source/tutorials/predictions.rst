@@ -1,6 +1,8 @@
 Making predictions with ``FAENet``
 ==================================
 
+.. contents:: Contents
+    :local:
 
 In this tutorial, we will learn how to use ``FAENet`` to make predictions. We will use the ``FAENet`` model trained on the ``PDBbind`` dataset.
 

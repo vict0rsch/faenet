@@ -7,3 +7,19 @@
 
    About <self>
    tutorials/index
+   install/index
+
+.. toctree::
+   :glob:
+   :caption: Reference
+   :maxdepth: 1
+
+   api/model
+   api/transforms
+   api/frame_averaging
+   api/fa_forward
+   api/base_model
+   api/embedding
+   api/force_decoder
+   api/eval
+   api/utils
