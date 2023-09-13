@@ -29,8 +29,6 @@ This repository contains an implementation of the paper [*FAENet: Frame Averagin
 * `FAENet`: a GNN architecture for material modeling.
 * `model_forward`: a high-level forward function that computes appropriate equivariant model predictions for the Frame Averaging method, i.e. handling the different frames and mapping to equivariant predictions.
 
-Also: https://github.com/vict0rsch/faenet
-
 ## Installation
 
 ```
