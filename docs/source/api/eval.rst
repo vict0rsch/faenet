@@ -1,6 +1,6 @@
 faenet.eval
 ================
-.. currentmodule:: eval
+.. currentmodule:: faenet.eval
 
 .. autosummary::
     :nosignatures:

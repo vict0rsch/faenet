@@ -1,6 +1,6 @@
 faenet.fa_forward
 ================
-.. currentmodule:: fa_forward
+.. currentmodule:: faenet.fa_forward
 
 .. autosummary::
     :nosignatures:

@@ -1,6 +1,6 @@
 faenet.utils
 ================
-.. currentmodule:: utils
+.. currentmodule:: faenet.utils
 
 .. autosummary::
     :nosignatures:

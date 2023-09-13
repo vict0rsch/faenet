@@ -1,6 +1,6 @@
 faenet.embedding
 ================
-.. currentmodule:: embedding
+.. currentmodule:: faenet.embedding
 
 .. autosummary::
     :nosignatures:

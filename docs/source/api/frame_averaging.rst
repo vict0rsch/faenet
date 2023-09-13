@@ -1,6 +1,6 @@
 faenet.frame_averaging
 ================
-.. currentmodule:: frame_averaging
+.. currentmodule:: faenet.frame_averaging
 
 .. autosummary::
     :nosignatures:

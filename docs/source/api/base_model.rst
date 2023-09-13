@@ -1,6 +1,6 @@
 faenet.base_model
 ================
-.. currentmodule:: base_model
+.. currentmodule:: faenet.base_model
 
 .. autosummary::
     :nosignatures:

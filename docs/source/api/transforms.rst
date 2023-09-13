@@ -1,6 +1,6 @@
 faenet.transforms
 ================
-.. currentmodule:: transforms
+.. currentmodule:: faenet.transforms
 
 .. autosummary::
     :nosignatures:

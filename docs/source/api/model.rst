@@ -1,6 +1,6 @@
 faenet.model
 ================
-.. currentmodule:: model
+.. currentmodule:: faenet.model
 
 .. autosummary::
     :nosignatures:
