@@ -5,5 +5,5 @@
    :hidden:
    :maxdepth: 4
 
-   self
+   About <self>
    tutorials/index
