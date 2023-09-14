@@ -1,5 +1,6 @@
 """
-Code of the Scalable Frame Averaging (Rotation Invariant) GNN
+FAENet: Frame Averaging Equivariant graph neural Network 
+Simple, scalable and expressive model for property prediction on 3D atomic systems.
 """
 from typing import Dict, Optional, Union
 
@@ -151,7 +152,7 @@ class EmbeddingBlock(nn.Module):
 
 
 class InteractionBlock(MessagePassing):
-    """Updates atom representations through message passing"""
+    """Updates atom representations through custom message passing"""
 
     def __init__(
         self,
@@ -360,7 +361,10 @@ class FAENet(BaseModel):
         energy_head (str): Method to compute energy prediction
             from atom representations.
             (`None`, `"weighted-av-initial-embeds"`, `"weighted-av-final-embeds"`)
-        pred_as_dict (bool): Set to False to return a (property) prediction tensor.  
+        out_dim (int): size of the output tensor for graph-level predicted properties ("energy")
+            Allows to predict multiple properties at the same time.
+            (default: :obj:`1`)
+        pred_as_dict (bool): Set to False to return a (property) prediction tensor.
             By default, predictions are returned as a dictionary with several keys (e.g. energy, forces)
             (default: :obj:`True`)
         regress_forces (str): Specifies if we predict forces or not, and how
@@ -370,6 +374,7 @@ class FAENet(BaseModel):
         force_decoder_model_config (dict): contains information about the
             for decoder architecture (e.g. number of layers, hidden size).
     """
+
     def __init__(
         self,
         cutoff: float = 6.0,
@@ -391,7 +396,7 @@ class FAENet(BaseModel):
         complex_mp: bool = False,
         energy_head: Optional[str] = None,
         out_dim: int = 1,
-        pred_as_dict: bool = True, 
+        pred_as_dict: bool = True,
         regress_forces: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
         force_decoder_model_config: Optional[dict] = {"hidden_channels": 128},
@@ -513,7 +518,9 @@ class FAENet(BaseModel):
         Can be utilised to predict any atom-level property.
 
         Args:
-            preds (dict): dictionnary with predicted properties for each graph.
+            preds (dict): dictionnary with final atomic representations
+                (hidden_state) and predicted properties (e.g. energy)
+                for each graph
 
         Returns:
             dict: additional predicted properties, at an atom-level (e.g. forces)
@@ -522,14 +529,16 @@ class FAENet(BaseModel):
             return self.decoder(preds["hidden_state"])
 
     def energy_forward(self, data, preproc=True):
-        """Predicts any graph-level properties (e.g. energy) for 3D atomic systems.
+        """Predicts any graph-level property (e.g. energy) for 3D atomic systems.
 
         Args:
-            data (data.Batch): Batch of graphs datapoints.
-            preproc (bool): Whether to preprocess the graph. Default to True.
+            data (data.Batch): Batch of graphs data objects.
+            preproc (bool): Whether to apply (any given) preprocessing to the graph.
+                Default to True.
 
         Returns:
-            dict: predicted properties for each graph (e.g. energy)
+            dict: predicted properties for each graph (key: "energy")
+                and final atomic representations (key: "hidden_state")
         """
         # Pre-process data (e.g. pbc, cutoff graph, etc.)
         # Should output all necessary attributes, in correct format.

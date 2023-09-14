@@ -3,6 +3,8 @@ import torch.nn as nn
 
 
 class BaseModel(nn.Module):
+    """Base class for ML models applied to 3D atomic systems."""
+
     def __init__(self, **kwargs):
         super().__init__()
 
@@ -28,7 +30,17 @@ class BaseModel(nn.Module):
         raise NotImplementedError
 
     def forward(self, data, mode="train", preproc=True):
-        """Main Forward pass."""
+        """Main Forward pass.
+
+        Args:
+            data (Data): input data object, with 3D atom positions (pos)
+            mode (str): train or inference mode
+            preproc (bool): Whether to preprocess (pbc, cutoff graph)
+                the input graph or point cloud. Default: True.
+        
+        Returns:
+            dict: predicted energy, forces and final atomic hidden states
+        """
         grad_forces = forces = None
 
         # energy gradient w.r.t. positions will be computed
@@ -65,22 +77,22 @@ class BaseModel(nn.Module):
                 raise ValueError(
                     f"Unknown forces regression mode {self.regress_forces}"
                 )
-        
-        if not self.pred_as_dict: 
+
+        if not self.pred_as_dict:
             return preds["energy"]
-        
+
         return preds
 
     def forces_as_energy_grad(self, pos, energy):
         """Computes forces from energy gradient
 
         Args:
-            pos (tensor): atom positions 
-            energy (tensor): predicted energy
+            pos (tensor): 3D atom positions
+            energy (tensor): system's predicted energy
 
         Returns:
             forces (tensor): gradient of energy w.r.t. atom positions
-        """        
+        """
 
         return -1 * (
             torch.autograd.grad(

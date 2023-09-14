@@ -50,7 +50,7 @@ autoapi_type = "python"
 autoapi_dirs = [str(ROOT / "faenet")]
 autoapi_member_order = "alphabetical"
 autoapi_template_dir = "_templates/autoapi"
-autoapi_python_class_content = "both"
+autoapi_python_class_content = "class"
 autoapi_options = [
     "members",
     "undoc-members",
