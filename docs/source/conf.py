@@ -41,10 +41,9 @@ intersphinx_mapping = {
     "torch": ("https://pytorch.org/docs/stable", None),
 }
 
-autosummary_generate = True
-
 # sphinx.ext.autodoc & autoapi.extension
 # https://autoapi.readthedocs.io/
+autosummary_generate = True
 autodoc_typehints = "description"
 autoapi_type = "python"
 autoapi_dirs = [str(ROOT / "faenet")]
@@ -59,7 +58,7 @@ autoapi_options = [
     # "imported-members",
     "special-members",
 ]
-autoapi_keep_files = False
+autoapi_keep_files = True
 
 mathjax_path = (
     "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"

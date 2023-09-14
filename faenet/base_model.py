@@ -39,7 +39,7 @@ class BaseModel(nn.Module):
                 the input graph or point cloud. Default: True.
         
         Returns:
-            dict: predicted energy, forces and final atomic hidden states
+            (dict): predicted energy, forces and final atomic hidden states
         """
         grad_forces = forces = None
 
@@ -91,7 +91,7 @@ class BaseModel(nn.Module):
             energy (tensor): system's predicted energy
 
         Returns:
-            forces (tensor): gradient of energy w.r.t. atom positions
+            (tensor): forces as the energy gradient w.r.t. atom positions
         """
 
         return -1 * (

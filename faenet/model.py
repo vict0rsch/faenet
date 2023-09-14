@@ -18,7 +18,7 @@ from faenet.utils import GaussianSmearing, swish, pbc_preprocess, base_preproces
 
 
 class EmbeddingBlock(nn.Module):
-    """Initialise atom and edge representations"""
+    """Initialise atom and edge representations."""
 
     def __init__(
         self,
@@ -107,6 +107,19 @@ class EmbeddingBlock(nn.Module):
             self.lin_e2.bias.data.fill_(0)
 
     def forward(self, z, rel_pos, edge_attr, tag=None, subnodes=None):
+        """Forward pass of the Embedding block.
+        Called in FAENet to generate initial atom and edge representations.        
+
+        Args:
+            z (tensor): atomic numbers. (num_atoms, )
+            rel_pos (tensor): relative atomic positions. (num_edges, 3)
+            edge_attr (tensor): RBF of pairwise distances. (num_edges, num_gaussians)
+            tag (tensor, optional): atom information specific to OCP. Defaults to None.
+
+        Returns:
+            (tensor, tensor): atom embeddings, edge embeddings
+        """
+
         # --- Edge embedding --
         rel_pos = self.lin_e1(rel_pos)  # r_ij
         edge_attr = self.lin_e12(edge_attr)  # d_ij
@@ -152,7 +165,7 @@ class EmbeddingBlock(nn.Module):
 
 
 class InteractionBlock(MessagePassing):
-    """Updates atom representations through custom message passing"""
+    """Updates atom representations through custom message passing."""
 
     def __init__(
         self,
@@ -220,6 +233,17 @@ class InteractionBlock(MessagePassing):
             self.lin_h.bias.data.fill_(0)
 
     def forward(self, h, edge_index, e):
+        """ Forward pass of the Interaction block.
+        Called in FAENet forward pass to update atom representations.
+
+        Args:
+            h (tensor): atom embedddings. (num_atoms, hidden_channels)
+            edge_index (tensor): adjacency matrix. (2, num_edges)
+            e (tensor): edge embeddings. (num_edges, num_filters)
+
+        Returns:
+            (tensor): updated atom embeddings
+        """
         # Define edge embedding
         if self.mp_type in {"base", "updownscale_base"}:
             e = torch.cat([e, h[edge_index[0]], h[edge_index[1]]], dim=1)
@@ -272,7 +296,7 @@ class InteractionBlock(MessagePassing):
 
 
 class OutputBlock(nn.Module):
-    """Compute task-specific predictions from final atom representations"""
+    """Compute task-specific predictions from final atom representations."""
 
     def __init__(self, energy_head, hidden_channels, act, out_dim=1):
         super().__init__()
@@ -295,6 +319,19 @@ class OutputBlock(nn.Module):
             self.w_lin.bias.data.fill_(0)
 
     def forward(self, h, edge_index, edge_weight, batch, alpha):
+        """ Forward pass of the Output block.
+        Called in FAENet to make prediction from final atom representations.
+
+        Args:
+            h (tensor): atom representations. (num_atoms, hidden_channels)
+            edge_index (tensor): adjacency matrix. (2, num_edges)
+            edge_weight (tensor): edge weights. (num_edges, )
+            batch (tensor): batch indices. (num_atoms, )
+            alpha (tensor): atom attention weights for late energy head. (num_atoms, )
+
+        Returns:
+            (tensor): graph-level representation (e.g. energy prediction) 
+        """
         if self.energy_head == "weighted-av-final-embeds":
             alpha = self.w_lin(h)
 
@@ -523,7 +560,7 @@ class FAENet(BaseModel):
                 for each graph
 
         Returns:
-            dict: additional predicted properties, at an atom-level (e.g. forces)
+            (dict): additional predicted properties, at an atom-level (e.g. forces)
         """
         if self.decoder:
             return self.decoder(preds["hidden_state"])
@@ -537,7 +574,7 @@ class FAENet(BaseModel):
                 Default to True.
 
         Returns:
-            dict: predicted properties for each graph (key: "energy")
+            (dict): predicted properties for each graph (key: "energy")
                 and final atomic representations (key: "hidden_state")
         """
         # Pre-process data (e.g. pbc, cutoff graph, etc.)

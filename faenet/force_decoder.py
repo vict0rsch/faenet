@@ -12,7 +12,7 @@ class LambdaLayer(nn.Module):
 
 class ForceDecoder(nn.Module):
     """
-    Decoder predicting a force scalar per atom
+    Predicts a force vector per atom from final atomic representations.
 
     Args:
         type (str): Type of force decoder to use
@@ -23,8 +23,11 @@ class ForceDecoder(nn.Module):
 
     Raises:
         ValueError: Unknown type of decoder
-    """
     
+    Returns: 
+        (torch.Tensor): Predicted force vector per atom
+    """
+
     def __init__(self, type, input_channels, model_configs, act):
         super().__init__()
         self.type = type

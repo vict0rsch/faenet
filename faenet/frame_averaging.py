@@ -9,7 +9,8 @@ import torch
 def compute_frames(
     eigenvec, pos, cell, fa_method="stochastic", pos_3D=None, det_index=0
 ):
-    """Compute all frames for a given graph.
+    """Compute all `frames` for a given graph, i.e. all possible 
+    canonical representations of the 3D graph (of all euclidean transformations).
 
     Args:
         eigenvec (tensor): eigenvectors matrix
@@ -21,7 +22,7 @@ def compute_frames(
         pos_3D: for 2D FA, pass atoms' 3rd position coordinate. 
 
     Returns:
-        list: 3D position tensors of projected representation
+        (list): 3D position tensors of projected representation
     """
     dim = pos.shape[1]  # to differentiate between 2D or 3D case
     plus_minus_list = list(product([1, -1], repeat=dim))
@@ -85,7 +86,7 @@ def compute_frames(
 
 
 def check_constraints(eigenval, eigenvec, dim=3):
-    """Check requirements for frame averaging are satisfied
+    """Check that the requirements for frame averaging are satisfied
 
     Args:
         eigenval (tensor): eigenvalues
@@ -110,7 +111,9 @@ def check_constraints(eigenval, eigenvec, dim=3):
 
 
 def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
-    """Computes new positions for the graph atoms using PCA
+    """Computes new positions for the graph atoms using
+    frame averaging, which itself builds on the PCA of atom positions.
+    Base case for 3D inputs. 
 
     Args:
         pos (tensor): positions of atoms in the graph
@@ -120,9 +123,9 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
         check (bool): check if constraints are satisfied. Default: False.
 
     Returns:
-        tensor: updated atom positions
-        tensor: updated unit cell
-        tensor: the rotation matrix used (PCA)
+        (tensor): updated atom positions
+        (tensor): updated unit cell
+        (tensor): the rotation matrix used (PCA)
     """
 
     # Compute centroid and covariance
@@ -150,8 +153,10 @@ def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
 
 
 def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
-    """Computes new positions for the graph atoms,
-    based on a frame averaging building on PCA.
+    """Computes new positions for the graph atoms using
+    frame averaging, which itself builds on the PCA of atom positions.
+    2D case: we project the atoms on the plane orthogonal to the z-axis.
+    Motivation: sometimes, the z-axis is not the most relevant one (e.g. fixed).
 
     Args:
         pos (tensor): positions of atoms in the graph
@@ -160,9 +165,9 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
         check (bool): check if constraints are satisfied. Default: False.
 
     Returns:
-        tensor: updated atom positions
-        tensor: updated unit cell
-        tensor: the rotation matrix used (PCA)
+        (tensor): updated atom positions
+        (tensor): updated unit cell
+        (tensor): the rotation matrix used (PCA)
     """
 
     # Compute centroid and covariance
@@ -189,7 +194,7 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
     return fa_pos, fa_cell, fa_rot
 
 def data_augmentation(g, d=3, *args):
-    """Data augmentation where we add randomly rotated graphs
+    """Data augmentation: randomly rotated graphs are added
     in the dataloader transform.
 
     Args:
