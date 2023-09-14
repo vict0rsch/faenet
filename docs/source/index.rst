@@ -28,14 +28,14 @@ More information are provided in the `User Guide <getting-started/index>`_.
    :caption: Reference
    :maxdepth: 1
 
-   api/model
-   api/transforms
-   api/frame_averaging
-   api/fa_forward
    api/base_model
    api/embedding
-   api/force_decoder
    api/eval
+   api/fa_forward
+   api/force_decoder
+   api/frame_averaging
+   api/model
+   api/transforms
    api/utils
 
 Contact
