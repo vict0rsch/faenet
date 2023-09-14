@@ -25,7 +25,7 @@ extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
-    'sphinx.ext.inheritance_diagram',
+    "sphinx.ext.inheritance_diagram",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx_math_dollar",
@@ -58,7 +58,7 @@ autoapi_options = [
     # "imported-members",
     "special-members",
 ]
-autoapi_keep_files = True
+autoapi_keep_files = False
 
 mathjax_path = (
     "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
