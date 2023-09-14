@@ -1,5 +1,5 @@
 faenet.force_decoder
-================
+====================
 .. currentmodule:: faenet.force_decoder
 
 .. autosummary::

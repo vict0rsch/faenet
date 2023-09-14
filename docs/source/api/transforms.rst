@@ -1,5 +1,5 @@
 faenet.transforms
-================
+=================
 .. currentmodule:: faenet.transforms
 
 .. autosummary::

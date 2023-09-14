@@ -1,5 +1,5 @@
 faenet.fa_forward
-================
+=================
 .. currentmodule:: faenet.fa_forward
 
 .. autosummary::

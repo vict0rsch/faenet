@@ -1,5 +1,5 @@
 faenet.frame_averaging
-================
+======================
 .. currentmodule:: faenet.frame_averaging
 
 .. autosummary::
