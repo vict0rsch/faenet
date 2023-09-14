@@ -23,22 +23,25 @@ root_doc = "index"
 
 extensions = [
     "myst_parser",
+    "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
+    'sphinx.ext.inheritance_diagram',
+    "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx_math_dollar",
     "sphinx.ext.mathjax",
-    "sphinx.ext.autodoc",
     "autoapi.extension",
-    "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinx_design",
     "sphinx_copybutton",
-    "sphinx_autodoc_typehints",
 ]
 
 # sphinx.ext.intersphinx
 intersphinx_mapping = {
     "torch": ("https://pytorch.org/docs/stable", None),
 }
+
+autosummary_generate = True
 
 # sphinx.ext.autodoc & autoapi.extension
 # https://autoapi.readthedocs.io/
@@ -47,7 +50,7 @@ autoapi_type = "python"
 autoapi_dirs = [str(ROOT / "faenet")]
 autoapi_member_order = "alphabetical"
 autoapi_template_dir = "_templates/autoapi"
-autoapi_python_class_content = "init"
+autoapi_python_class_content = "both"
 autoapi_options = [
     "members",
     "undoc-members",
