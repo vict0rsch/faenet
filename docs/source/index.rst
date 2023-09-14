@@ -19,28 +19,27 @@ More information are provided in the `User Guide <getting-started/index>`_.
    :glob:
    :caption: User Guide
    :maxdepth: 4
-   
+
    install/index
    getting-started/index
 
 .. toctree::
-   :glob:
    :caption: Reference
-   :maxdepth: 1
+   :maxdepth: 0
 
-   api/base_model
-   api/embedding
-   api/eval
-   api/fa_forward
-   api/force_decoder
-   api/frame_averaging
-   api/model
-   api/transforms
-   api/utils
+   /api/faenet/base_model/index
+   /api/faenet/embedding/index
+   /api/faenet/eval/index
+   /api/faenet/fa_forward/index
+   /api/faenet/force_decoder/index
+   /api/faenet/frame_averaging/index
+   /api/faenet/model/index
+   /api/faenet/transforms/index
+   /api/faenet/utils/index
 
 Contact
--------  
+-------
 
-Alexandre Duval (alexandre.duval@mila.quebec) and Victor Schmidt (schmidtv@mila.quebec). 
+Alexandre Duval (alexandre.duval@mila.quebec) and Victor Schmidt (schmidtv@mila.quebec).
 We welcome your questions and feedback via email or GitHub Issues.
 
