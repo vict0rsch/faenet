@@ -2,15 +2,17 @@
 name = "faenet"
 version = "0.1.2"
 description = "PyTorch implementation for FAENet from 'FAENet: Frame Averaging Equivariant GNN for Materials Modeling'"
-authors = ["Victor Schmidt <vsch@pm.me>", "Alexandre Duval <alexandre.duval@mila.quebec>"]
+authors = [
+    "Victor Schmidt <vsch@pm.me>",
+    "Alexandre Duval <alexandre.duval@mila.quebec>",
+]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8"
 torch = ">=1.12"
-mendeleev = "^0.12"
-e3nn = ">=0.5.1"
+mendeleev = ">=0.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
