@@ -37,7 +37,7 @@ class BaseModel(nn.Module):
             mode (str): train or inference mode
             preproc (bool): Whether to preprocess (pbc, cutoff graph)
                 the input graph or point cloud. Default: True.
-        
+
         Returns:
             (dict): predicted energy, forces and final atomic hidden states
         """

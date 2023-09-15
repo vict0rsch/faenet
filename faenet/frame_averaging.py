@@ -9,7 +9,7 @@ import torch
 def compute_frames(
     eigenvec, pos, cell, fa_method="stochastic", pos_3D=None, det_index=0
 ):
-    """Compute all `frames` for a given graph, i.e. all possible 
+    """Compute all `frames` for a given graph, i.e. all possible
     canonical representations of the 3D graph (of all euclidean transformations).
 
     Args:
@@ -19,7 +19,7 @@ def compute_frames(
         fa_method (str): the Frame Averaging (FA) inspired technique
             chosen to select frames: stochastic-FA (stochastic), deterministic-FA (det),
             Full-FA (all) or SE(3)-FA (se3).
-        pos_3D: for 2D FA, pass atoms' 3rd position coordinate. 
+        pos_3D: for 2D FA, pass atoms' 3rd position coordinate.
 
     Returns:
         (list): 3D position tensors of projected representation
@@ -30,7 +30,14 @@ def compute_frames(
     all_fa_pos = []
     all_cell = []
     all_rots = []
-    assert fa_method in {"all", "stochastic", "det", "se3-all", "se3-stochastic", "se3-det"}
+    assert fa_method in {
+        "all",
+        "stochastic",
+        "det",
+        "se3-all",
+        "se3-stochastic",
+        "se3-det",
+    }
     se3 = fa_method in {
         "se3-all",
         "se3-stochastic",
@@ -113,11 +120,11 @@ def check_constraints(eigenval, eigenvec, dim=3):
 def frame_averaging_3D(pos, cell=None, fa_method="stochastic", check=False):
     """Computes new positions for the graph atoms using
     frame averaging, which itself builds on the PCA of atom positions.
-    Base case for 3D inputs. 
+    Base case for 3D inputs.
 
     Args:
         pos (tensor): positions of atoms in the graph
-        cell (tensor): unit cell of the graph. None if no pbc. 
+        cell (tensor): unit cell of the graph. None if no pbc.
         fa_method (str): FA method used
             (stochastic, det, all, se3-all, se3-det, se3-stochastic)
         check (bool): check if constraints are satisfied. Default: False.
@@ -193,6 +200,7 @@ def frame_averaging_2D(pos, cell=None, fa_method="stochastic", check=False):
 
     return fa_pos, fa_cell, fa_rot
 
+
 def data_augmentation(g, d=3, *args):
     """Data augmentation: randomly rotated graphs are added
     in the dataloader transform.
@@ -210,7 +218,7 @@ def data_augmentation(g, d=3, *args):
     # Sampling a random rotation within [-180, 180] for all axes.
     if d == 3:
         transform = RandomRotate([-180, 180], [0, 1, 2])  # 3D
-    else: 
+    else:
         transform = RandomRotate([-180, 180], [2])  # 2D around z-axis
 
     # Rotate graph

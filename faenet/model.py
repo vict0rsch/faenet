@@ -108,7 +108,7 @@ class EmbeddingBlock(nn.Module):
 
     def forward(self, z, rel_pos, edge_attr, tag=None, subnodes=None):
         """Forward pass of the Embedding block.
-        Called in FAENet to generate initial atom and edge representations.        
+        Called in FAENet to generate initial atom and edge representations.
 
         Args:
             z (tensor): atomic numbers. (num_atoms, )
@@ -233,7 +233,7 @@ class InteractionBlock(MessagePassing):
             self.lin_h.bias.data.fill_(0)
 
     def forward(self, h, edge_index, e):
-        """ Forward pass of the Interaction block.
+        """Forward pass of the Interaction block.
         Called in FAENet forward pass to update atom representations.
 
         Args:
@@ -319,7 +319,7 @@ class OutputBlock(nn.Module):
             self.w_lin.bias.data.fill_(0)
 
     def forward(self, h, edge_index, edge_weight, batch, alpha):
-        """ Forward pass of the Output block.
+        """Forward pass of the Output block.
         Called in FAENet to make prediction from final atom representations.
 
         Args:
@@ -330,7 +330,7 @@ class OutputBlock(nn.Module):
             alpha (tensor): atom attention weights for late energy head. (num_atoms, )
 
         Returns:
-            (tensor): graph-level representation (e.g. energy prediction) 
+            (tensor): graph-level representation (e.g. energy prediction)
         """
         if self.energy_head == "weighted-av-final-embeds":
             alpha = self.w_lin(h)

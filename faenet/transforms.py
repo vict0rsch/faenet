@@ -7,7 +7,7 @@ from faenet.frame_averaging import (
 
 class Transform:
     """Base class for all transforms."""
-    
+
     def __call__(self, data):
         raise NotImplementedError
 

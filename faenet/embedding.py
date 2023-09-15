@@ -18,7 +18,7 @@ class PhysEmbedding(nn.Module):
         short (bool, optional): Remove all columns containing NaN values.
             (default: :obj:`False`)
     """
-    
+
     def __init__(self, props=True, props_grad=False, pg=False, short=False) -> None:
         super().__init__()
 

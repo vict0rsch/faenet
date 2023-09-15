@@ -23,8 +23,8 @@ class ForceDecoder(nn.Module):
 
     Raises:
         ValueError: Unknown type of decoder
-    
-    Returns: 
+
+    Returns:
         (torch.Tensor): Predicted force vector per atom
     """
 

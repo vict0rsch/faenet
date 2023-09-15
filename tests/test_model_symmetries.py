@@ -40,6 +40,7 @@ init_space = {
     "skip_co": [False, "concat"],
 }
 
+
 def test_init_no_arg():
     model = FAENet()
     assert model is not None

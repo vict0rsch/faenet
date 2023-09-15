@@ -69,8 +69,8 @@ def get_pbc_distances(
 
 
 def base_preprocess(data, cutoff=6.0, max_num_neighbors=40):
-    """Preprocess datapoint: create a cutoff graph, 
-        compute distances and relative positions. 
+    """Preprocess datapoint: create a cutoff graph,
+        compute distances and relative positions.
 
         Args:
         data (data.Data): data object with specific attributes:
