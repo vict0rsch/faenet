@@ -61,7 +61,7 @@ autoapi_options = [
     # "imported-members",
     "special-members",
 ]
-autoapi_keep_files = True
+autoapi_keep_files = False
 autoapi_root = "api"
 autoapi_add_toctree_entry = False
 
