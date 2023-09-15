@@ -9,6 +9,8 @@ FAENet: Frame Averaging Equivariant GNN for Materials modeling
 
 More information are provided in the `User Guide <getting-started/index>`_.
 
+**See the source code for the package on `Github <https://github.com/vict0rsch/faenet>`_**
+
 .. toctree::
    :hidden:
    :maxdepth: 4
@@ -25,8 +27,9 @@ More information are provided in the `User Guide <getting-started/index>`_.
 
 .. toctree::
    :caption: Reference
-   :maxdepth: 0
+   :maxdepth: 1
 
+   /api/faenet/index
    /api/faenet/base_model/index
    /api/faenet/embedding/index
    /api/faenet/eval/index
