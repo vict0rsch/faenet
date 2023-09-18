@@ -78,6 +78,8 @@ class BaseModel(nn.Module):
                     f"Unknown forces regression mode {self.regress_forces}"
                 )
 
+        if not self.pred_as_dict and self.regress_forces:
+            return preds["energy"], preds["forces"]
         if not self.pred_as_dict:
             return preds["energy"]
 
