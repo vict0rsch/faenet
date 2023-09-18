@@ -6,6 +6,8 @@ from faenet.frame_averaging import (
 
 
 class Transform:
+    """Base class for all transforms."""
+
     def __call__(self, data):
         raise NotImplementedError
 
@@ -27,22 +29,22 @@ class FrameAveraging(Transform):
 
     Computes new atomic positions (`fa_pos`) for all datapoints, as well as
     new unit cells (`fa_cell`) attributes for crystal structures, when applicable.
-    The rotation matrix (`fa_rot`) used for the frame averaging is also stored. 
+    The rotation matrix (`fa_rot`) used for the frame averaging is also stored.
 
     Args:
-        frame_averaging (str): Transform method used. 
+        frame_averaging (str): Transform method used.
             Can be 2D FA, 3D FA, Data Augmentation or no FA, respectively denoted by
             (`"2D"`, `"3D"`, `"DA"`, `""`)
         fa_method (str): the actual frame averaging technique used.
-            "stochastic" refers to sampling one frame at random (at each epoch), 
+            "stochastic" refers to sampling one frame at random (at each epoch),
             "det" to chosing deterministically one frame, and "all" to using all frames.
             The prefix "se3-" refers to the SE(3) equivariant version of the method.
             "" means that no frame averaging is used.
             (`""`, `"stochastic"`, `"all"`, `"det"`, `"se3-stochastic"`, `"se3-all"`, `"se3-det"`)
-    
+
     Returns:
         (data.Data): updated data object with new positions (+ unit cell) attributes
-        and the rotation matrices used for the frame averaging transform. 
+        and the rotation matrices used for the frame averaging transform.
     """
 
     def __init__(self, frame_averaging=None, fa_method=None):
@@ -78,8 +80,7 @@ class FrameAveraging(Transform):
                 raise ValueError(f"Unknown frame averaging: {self.frame_averaging}")
 
     def __call__(self, data):
-        """ The only requirement for the data is to have a `pos` attribute.
-        """
+        """The only requirement for the data is to have a `pos` attribute."""
         if self.inactive:
             return data
         elif self.frame_averaging == "DA":

@@ -7,13 +7,14 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
+from pathlib import Path
 
 project = "faenet"
 copyright = "2023, OCP"
 author = "Victor Schmidt"
 
-
-sys.path.insert(0, os.path.abspath("../.."))
+ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(ROOT))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -21,17 +22,49 @@ root_doc = "index"
 
 extensions = [
     "myst_parser",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "autoapi.extension",
+    "sphinx_autodoc_typehints",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.napoleon",
     "sphinx_math_dollar",
     "sphinx.ext.mathjax",
-    "sphinx.ext.autodoc",
-    "autoapi.extension",
-    "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "sphinx_design",
+    "sphinx_copybutton",
 ]
-autoapi_type = "python"
-autoapi_dirs = ["../../faenet"]
-autoapi_member_order = "alphabetical"
 
+# sphinx.ext.intersphinx
+intersphinx_mapping = {
+    "torch": ("https://pytorch.org/docs/stable", None),
+}
+html_sidebars = {
+    "**": ["globaltoc.html", "relations.html", "sourcelink.html", "searchbox.html"]
+}
+
+
+# sphinx.ext.autodoc & autoapi.extension
+# https://autoapi.readthedocs.io/
+autosummary_generate = True
 autodoc_typehints = "description"
+autoapi_type = "python"
+autoapi_dirs = [str(ROOT / "faenet")]
+autoapi_member_order = "groupwise"
+autoapi_template_dir = "_templates/autoapi"
+autoapi_python_class_content = "class"
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "show-inheritance",
+    "show-module-summary",
+    # "imported-members",
+    "special-members",
+]
+autoapi_keep_files = False
+autoapi_root = "api"
+autoapi_add_toctree_entry = False
+
 mathjax_path = (
     "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 )

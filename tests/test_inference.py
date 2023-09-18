@@ -27,7 +27,7 @@ defaults = {
     "second_layer_MLP": True,
     "skip_co": True,
     "tag_hidden_channels": 8,
-    "preprocess": "pbc_preprocess"
+    "preprocess": "pbc_preprocess",
 }
 
 init_space = {
