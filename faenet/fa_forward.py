@@ -3,24 +3,29 @@ import torch
 
 
 def model_forward(batch, model, frame_averaging, mode="train", crystal_task=True):
-    """Perform a model forward pass when frame averaging is applied.
+    """Performs a model forward pass when frame averaging is applied,
+    enabling to get equivariant or invariant predictions. 
 
     Args:
         batch (data.Batch): batch of graphs with attributes:
-            - original atom positions (`pos`)
-            - batch indices (to which graph in batch each atom belongs to) (`batch`)
-            - frame averaged positions, cell and rotation matrices (`fa_pos`, `fa_cell`, `fa_rot`)
-        model: model instance
-        frame_averaging (str): symmetry preserving method (already) applied
-            ("2D", "3D", "DA", "")
-        mode (str, optional): model mode. Defaults to "train".
-            ("train", "eval")
+
+            - `pos`: original atom positions 
+            - `batch`: batch indices (to which graph in batch each atom belongs to)
+            - `fa_pos`, `fa_cell`, `fa_rot`: frame averaging positions, cell and rotation matrices
+        model: ML model instance
+        frame_averaging (str): symmetry preserving transform (already applied).
+            Can be 2D FA, 3D FA, Data Augmentation or None, respectively denoted by
+            (`"2D"`, `"3D"`, `"DA"`, `""`).
+        mode (str, optional): model mode: `train` or `inference`. 
+            (default: :obj:`"train"`)
         crystal_task (bool, optional): Whether crystals (molecules) are considered.
             If they are, the unit cell (3x3) is affected by frame averaged and expected as attribute.
             (default: :obj:`True`)
 
     Returns:
-        (dict): model predictions tensor for "energy" and "forces".
+        (dict): dictionary of model predictions:
+            - `energy` (torch.Tensor): any graph-level property (e.g. energy)
+            - `forces` (torch.Tensor): any node-level property (e.g. forces)
     """
     if isinstance(batch, list):
         batch = batch[0]
