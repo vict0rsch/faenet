@@ -31,6 +31,7 @@ class EmbeddingBlock(nn.Module):
         phys_embeds,
         act,
         second_layer_MLP,
+        num_chemical_elements,
     ):
         super().__init__()
         self.act = act
@@ -66,7 +67,7 @@ class EmbeddingBlock(nn.Module):
 
         # Main embedding
         self.emb = Embedding(
-            85,
+            num_chemical_elements,
             hidden_channels
             - tag_hidden_channels
             - phys_hidden_channels
@@ -379,6 +380,8 @@ class FAENet(BaseModel):
             (default: :obj: `True`)
         phys_hidden_channels (int): Hidden size of learnable physics-aware embeddings.
             (default: :obj:`0`)
+        num_chemical_elements (int): The number of different atom types in whole dataset.
+            (default: :obj:`85`)
         num_interactions (int): The number of interaction (i.e. message passing) blocks.
             (default: :obj:`4`)
         num_gaussians (int): The number of gaussians :math:`\mu` to encode distance info.
@@ -423,6 +426,7 @@ class FAENet(BaseModel):
         pg_hidden_channels: int = 32,
         phys_embeds: bool = True,
         phys_hidden_channels: int = 0,
+        num_chemical_elements: int = 85,
         num_interactions: int = 4,
         num_gaussians: int = 50,
         num_filters: int = 128,
@@ -462,6 +466,7 @@ class FAENet(BaseModel):
         self.tag_hidden_channels = tag_hidden_channels
         self.preprocess = preprocess
         self.pred_as_dict = pred_as_dict
+        self.num_chemical_elements = num_chemical_elements
 
         if isinstance(self.preprocess, str):
             self.preprocess = eval(self.preprocess)
@@ -500,6 +505,8 @@ class FAENet(BaseModel):
             self.phys_embeds,
             self.act,
             self.second_layer_MLP,
+            self.num_chemical_elements,
+
         )
 
         # Interaction block

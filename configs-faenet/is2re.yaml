@@ -21,6 +21,7 @@ default:
     pg_hidden_channels: 64  # period & group embedding hidden channels
     phys_embeds: True  # physics-aware embeddings for atoms
     phys_hidden_channels: 0
+    num_chemical_elements: 85 # total number of unique atom types in dataset
     energy_head: weighted-av-final-embeds  # Energy head: {False, weighted-av-initial-embeds, weighted-av-final-embeds}
     skip_co: concat  # Skip connections {False, "add", "concat"}
     second_layer_MLP: False  # in EmbeddingBlock
