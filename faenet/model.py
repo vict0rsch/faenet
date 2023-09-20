@@ -61,8 +61,8 @@ class EmbeddingBlock(nn.Module):
                 self.phys_emb.group_size, pg_hidden_channels
             )
 
-        # Tag embedding
-        if tag_hidden_channels:
+        # Tag embedding (specific to OC20)
+        if self.use_tag:
             self.tag_embedding = Embedding(3, tag_hidden_channels)
 
         # Main embedding
@@ -141,6 +141,10 @@ class EmbeddingBlock(nn.Module):
 
         # Concat tag embedding
         if self.use_tag:
+            if tag is None:
+                raise ValueError(
+                    "`tag_hidden_channels` has to be zero as data has no 'tag' attribute."
+                )
             h_tag = self.tag_embedding(tag)
             h = torch.cat((h, h_tag), dim=1)
 
@@ -506,7 +510,6 @@ class FAENet(BaseModel):
             self.act,
             self.second_layer_MLP,
             self.num_chemical_elements,
-
         )
 
         # Interaction block
