@@ -26,6 +26,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "autoapi.extension",
     "sphinx.ext.napoleon",
+    "sphinx_rtd_theme",
 ]
 autoapi_type = "python"
 autoapi_dirs = ["../../faenet"]
