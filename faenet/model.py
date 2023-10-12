@@ -1,5 +1,6 @@
 """
-Code of the Scalable Frame Averaging (Rotation Invariant) GNN
+FAENet: Frame Averaging Equivariant graph neural Network 
+Simple, scalable and expressive model for property prediction on 3D atomic systems.
 """
 from typing import Dict, Optional, Union
 
@@ -17,7 +18,7 @@ from faenet.utils import GaussianSmearing, swish, pbc_preprocess, base_preproces
 
 
 class EmbeddingBlock(nn.Module):
-    """Initialise atom and edge representations"""
+    """Initialise atom and edge representations."""
 
     def __init__(
         self,
@@ -106,6 +107,19 @@ class EmbeddingBlock(nn.Module):
             self.lin_e2.bias.data.fill_(0)
 
     def forward(self, z, rel_pos, edge_attr, tag=None, subnodes=None):
+        """Forward pass of the Embedding block.
+        Called in FAENet to generate initial atom and edge representations.
+
+        Args:
+            z (tensor): atomic numbers. (num_atoms, )
+            rel_pos (tensor): relative atomic positions. (num_edges, 3)
+            edge_attr (tensor): RBF of pairwise distances. (num_edges, num_gaussians)
+            tag (tensor, optional): atom information specific to OCP. Defaults to None.
+
+        Returns:
+            (tensor, tensor): atom embeddings, edge embeddings
+        """
+
         # --- Edge embedding --
         rel_pos = self.lin_e1(rel_pos)  # r_ij
         edge_attr = self.lin_e12(edge_attr)  # d_ij
@@ -151,7 +165,7 @@ class EmbeddingBlock(nn.Module):
 
 
 class InteractionBlock(MessagePassing):
-    """Updates atom representations through message passing"""
+    """Updates atom representations through custom message passing."""
 
     def __init__(
         self,
@@ -219,6 +233,17 @@ class InteractionBlock(MessagePassing):
             self.lin_h.bias.data.fill_(0)
 
     def forward(self, h, edge_index, e):
+        """Forward pass of the Interaction block.
+        Called in FAENet forward pass to update atom representations.
+
+        Args:
+            h (tensor): atom embedddings. (num_atoms, hidden_channels)
+            edge_index (tensor): adjacency matrix. (2, num_edges)
+            e (tensor): edge embeddings. (num_edges, num_filters)
+
+        Returns:
+            (tensor): updated atom embeddings
+        """
         # Define edge embedding
         if self.mp_type in {"base", "updownscale_base"}:
             e = torch.cat([e, h[edge_index[0]], h[edge_index[1]]], dim=1)
@@ -271,15 +296,15 @@ class InteractionBlock(MessagePassing):
 
 
 class OutputBlock(nn.Module):
-    """Compute task-specific predictions from final atom representations"""
+    """Compute task-specific predictions from final atom representations."""
 
-    def __init__(self, energy_head, hidden_channels, act):
+    def __init__(self, energy_head, hidden_channels, act, out_dim=1):
         super().__init__()
         self.energy_head = energy_head
         self.act = act
 
         self.lin1 = Linear(hidden_channels, hidden_channels // 2)
-        self.lin2 = Linear(hidden_channels // 2, 1)
+        self.lin2 = Linear(hidden_channels // 2, out_dim)
 
         if self.energy_head == "weighted-av-final-embeds":
             self.w_lin = Linear(hidden_channels, 1)
@@ -294,6 +319,19 @@ class OutputBlock(nn.Module):
             self.w_lin.bias.data.fill_(0)
 
     def forward(self, h, edge_index, edge_weight, batch, alpha):
+        """Forward pass of the Output block.
+        Called in FAENet to make prediction from final atom representations.
+
+        Args:
+            h (tensor): atom representations. (num_atoms, hidden_channels)
+            edge_index (tensor): adjacency matrix. (2, num_edges)
+            edge_weight (tensor): edge weights. (num_edges, )
+            batch (tensor): batch indices. (num_atoms, )
+            alpha (tensor): atom attention weights for late energy head. (num_atoms, )
+
+        Returns:
+            (tensor): graph-level representation (e.g. energy prediction)
+        """
         if self.energy_head == "weighted-av-final-embeds":
             alpha = self.w_lin(h)
 
@@ -360,6 +398,12 @@ class FAENet(BaseModel):
         energy_head (str): Method to compute energy prediction
             from atom representations.
             (`None`, `"weighted-av-initial-embeds"`, `"weighted-av-final-embeds"`)
+        out_dim (int): size of the output tensor for graph-level predicted properties ("energy")
+            Allows to predict multiple properties at the same time.
+            (default: :obj:`1`)
+        pred_as_dict (bool): Set to False to return a (property) prediction tensor.
+            By default, predictions are returned as a dictionary with several keys (e.g. energy, forces)
+            (default: :obj:`True`)
         regress_forces (str): Specifies if we predict forces or not, and how
             do we predict them. (`None` or `""`, `"direct"`, `"direct_with_gradient_target"`)
         force_decoder_type (str): Specifies the type of force decoder
@@ -371,23 +415,25 @@ class FAENet(BaseModel):
     def __init__(
         self,
         cutoff: float = 6.0,
-        act: str = "swish",
         preprocess: Union[str, callable] = "pbc_preprocess",
-        complex_mp: bool = False,
+        act: str = "swish",
         max_num_neighbors: int = 40,
-        num_gaussians: int = 50,
-        num_filters: int = 128,
         hidden_channels: int = 128,
         tag_hidden_channels: int = 32,
         pg_hidden_channels: int = 32,
-        phys_hidden_channels: int = 0,
         phys_embeds: bool = True,
+        phys_hidden_channels: int = 0,
         num_interactions: int = 4,
-        mp_type: str = "updownscale_base",
-        graph_norm: bool = True,
+        num_gaussians: int = 50,
+        num_filters: int = 128,
         second_layer_MLP: bool = True,
         skip_co: str = "concat",
+        mp_type: str = "updownscale_base",
+        graph_norm: bool = True,
+        complex_mp: bool = False,
         energy_head: Optional[str] = None,
+        out_dim: int = 1,
+        pred_as_dict: bool = True,
         regress_forces: Optional[str] = None,
         force_decoder_type: Optional[str] = "mlp",
         force_decoder_model_config: Optional[dict] = {"hidden_channels": 128},
@@ -415,6 +461,7 @@ class FAENet(BaseModel):
         self.skip_co = skip_co
         self.tag_hidden_channels = tag_hidden_channels
         self.preprocess = preprocess
+        self.pred_as_dict = pred_as_dict
 
         if isinstance(self.preprocess, str):
             self.preprocess = eval(self.preprocess)
@@ -472,7 +519,7 @@ class FAENet(BaseModel):
 
         # Output block
         self.output_block = OutputBlock(
-            self.energy_head, self.hidden_channels, self.act
+            self.energy_head, self.hidden_channels, self.act, out_dim
         )
 
         # Energy head
@@ -493,7 +540,7 @@ class FAENet(BaseModel):
 
         # Skip co
         if self.skip_co == "concat":
-            self.mlp_skip_co = Linear((self.num_interactions + 1), 1)
+            self.mlp_skip_co = Linear(out_dim * (self.num_interactions + 1), out_dim)
         elif self.skip_co == "concat_atom":
             self.mlp_skip_co = Linear(
                 ((self.num_interactions + 1) * self.hidden_channels),
@@ -508,23 +555,27 @@ class FAENet(BaseModel):
         Can be utilised to predict any atom-level property.
 
         Args:
-            preds (dict): dictionnary with predicted properties for each graph.
+            preds (dict): dictionnary with final atomic representations
+                (hidden_state) and predicted properties (e.g. energy)
+                for each graph
 
         Returns:
-            dict: additional predicted properties, at an atom-level (e.g. forces)
+            (dict): additional predicted properties, at an atom-level (e.g. forces)
         """
         if self.decoder:
             return self.decoder(preds["hidden_state"])
 
     def energy_forward(self, data, preproc=True):
-        """Predicts any graph-level properties (e.g. energy) for 3D atomic systems.
+        """Predicts any graph-level property (e.g. energy) for 3D atomic systems.
 
         Args:
-            data (data.Batch): Batch of graphs datapoints.
-            preproc (bool): Whether to preprocess the graph. Default to True.
+            data (data.Batch): Batch of graphs data objects.
+            preproc (bool): Whether to apply (any given) preprocessing to the graph.
+                Default to True.
 
         Returns:
-            dict: predicted properties for each graph (e.g. energy)
+            (dict): predicted properties for each graph (key: "energy")
+                and final atomic representations (key: "hidden_state")
         """
         # Pre-process data (e.g. pbc, cutoff graph, etc.)
         # Should output all necessary attributes, in correct format.

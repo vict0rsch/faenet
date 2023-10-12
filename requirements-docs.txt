@@ -10,3 +10,4 @@ sphinx-copybutton
 sphinx-hoverxref
 sphinxext-opengraph
 sphinx-rtd-theme
+chardet

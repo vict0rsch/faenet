@@ -5,20 +5,21 @@ from mendeleev.fetch import fetch_ionization_energies, fetch_table
 
 
 class PhysEmbedding(nn.Module):
-    def __init__(self, props=True, props_grad=False, pg=False, short=False) -> None:
-        """
-        Create physics-aware embeddings meta class with sub-emeddings for each atom
+    """
+    Create physics-aware embeddings for each atom based their properties.
 
-        Args:
-            props (bool, optional): Create an embedding of physical
-                properties. (default: :obj:`True`)
-            props_grad (bool, optional): Learn a physics-aware embedding
-                instead of keeping it fixed. (default: :obj:`False`)
-            pg (bool, optional): Learn two embeddings based on period and
-                group information respectively. (default: :obj:`False`)
-            short (bool, optional): Remove all columns containing NaN values.
-                (default: :obj:`False`)
-        """
+    Args:
+        props (bool, optional): Create an embedding of physical
+            properties. (default: :obj:`True`)
+        props_grad (bool, optional): Learn a physics-aware embedding
+            instead of keeping it fixed. (default: :obj:`False`)
+        pg (bool, optional): Learn two embeddings based on period and
+            group information respectively. (default: :obj:`False`)
+        short (bool, optional): Remove all columns containing NaN values.
+            (default: :obj:`False`)
+    """
+
+    def __init__(self, props=True, props_grad=False, pg=False, short=False) -> None:
         super().__init__()
 
         self.properties_list = [

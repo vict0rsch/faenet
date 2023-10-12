@@ -10,6 +10,7 @@ from torch_geometric.nn import radius_graph
 
 
 def swish(x):
+    """Swish activation function"""
     return torch.nn.functional.silu(x)
 
 
@@ -34,7 +35,7 @@ def get_pbc_distances(
         return_rel_pos (bool): return the relative positions vectors
 
     Returns:
-        dict: dictionary with the updated edge_index, atom distances,
+        (dict): dictionary with the updated edge_index, atom distances,
             and optionally the offsets and distance vectors.
     """
     rel_pos = pos[edge_index[0]] - pos[edge_index[1]]
@@ -68,7 +69,8 @@ def get_pbc_distances(
 
 
 def base_preprocess(data, cutoff=6.0, max_num_neighbors=40):
-    """Preprocess data using a simple cutoff radius
+    """Preprocess datapoint: create a cutoff graph,
+        compute distances and relative positions.
 
         Args:
         data (data.Data): data object with specific attributes:
@@ -83,7 +85,7 @@ def base_preprocess(data, cutoff=6.0, max_num_neighbors=40):
         max_num_neighbors (int): maximum number of neighbors per node.
 
     Returns:
-        tuple: (atomic_numbers, batch, sparse adjacency matrix, relative positions, distances)
+        (tuple): atomic_numbers, batch, sparse adjacency matrix, relative positions, distances
     """
     edge_index = radius_graph(
         data.pos,
@@ -102,8 +104,8 @@ def base_preprocess(data, cutoff=6.0, max_num_neighbors=40):
 
 
 def pbc_preprocess(data, cutoff=6.0, max_num_neighbors=40):
-    """Preprocess data using periodic boundary conditions
-    Used for OC20.
+    """Preprocess datapoint using periodic boundary conditions
+        to improve the existing graph.
 
     Args:
         data (data.Data): data object with specific attributes. B is the batch size,
@@ -118,7 +120,7 @@ def pbc_preprocess(data, cutoff=6.0, max_num_neighbors=40):
             If these attributes are not present, implement your own preprocess function.
 
     Returns:
-        tuple: (atomic_numbers, batch, sparse adjacency matrix, relative positions, distances)
+        (tuple): atomic_numbers, batch, sparse adjacency matrix, relative positions, distances
     """
     out = get_pbc_distances(
         data.pos,
